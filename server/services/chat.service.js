@@ -1,55 +1,54 @@
-import Cart from "../models/Cart.model.js";
+import Chat from "../models/Chat,model.js";
+import Message from "../models/Message.model.js";
 
-export const addItemToCart = async (userId, productId) => {
+export const findChatById = async (chatId) => {
   try {
+    const chat = await Chat.findById(chatId)
+      .populate("MessageId")
+      .populate("userId")
+      .populate("members");
+    if (!chat) throw new Error("chat not found!");
+    return chat;
   } catch (error) {
-    throw new Error("could not complete add to cart functionality");
+    throw new Error("could not find chat by ID");
+  }
+};
+export const createNewChat = async (reqBody) => {
+  try {
+    const { text, members } = reqBody;
+    if (!text || !members || !Array.isArray(members) || members.length === 0)
+      throw new Error("please provide all required fields");
+    const newChat = await Chat.create();
+    await Message.create({
+      chatId: newChat._id,
+      text,
+    });
+  } catch (error) {
+    throw new Error("could not create new chat");
+  }
+};
+export const discardChat = async (chatId) => {
+  try {
+    const chat = await findChatById(chatId);
+    chat.isDeleted = true;
+    return chat;
+  } catch (error) {
+    throw new Error("could not delete chat");
   }
 };
 
-export const removeFromCart = async (userId, productId) => {
+export const listAllChats = async () => {
   try {
+    let chats;
+    if (req.user.role === "admin" || req.user.role === "superAdmin") {
+      chats = await Chat.find();
+    } else {
+      chats = await Chat.find({
+        $or: [{ members: { $in: req.user.id } }, { userId: req.user.id }],
+      });
+    }
+    return chats;
   } catch (error) {
-    throw new Error("could not complete remove from cart functionality");
-  }
-};
-
-// ==================================================================================
-//                                 Aggregations
-// ==================================================================================
-export const getCartsStats = async () => {
-  try {
-    // const count = await Cart.countDocuments({ isDeleted: false });
-    // return count;
-    const pipeline = [
-      {
-        $match: {
-          isDeleted: false,
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          totalCount: {
-            $sum: 1,
-          },
-          totalAmount: {
-            $sum: "$amount",
-          },
-        },
-      },
-      {
-        $sort: {
-          createdAt: -1,
-        },
-      },
-      {
-        $limit: 100,
-      },
-    ];
-    const result = await Cart.aggregate(pipeline);
-    return result;
-  } catch (error) {
-    throw new Error("Could not count all cart items");
+    throw new Error("cannot list all chats");
   }
 };
