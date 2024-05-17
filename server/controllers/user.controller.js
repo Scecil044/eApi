@@ -47,7 +47,10 @@ export const updateUser = async (req, res, next) => {
 };
 export const deleteUser = async (req, res, next) => {
   try {
-    const deleteAction = await discardUser;
+    /**
+     * continue with this functionality
+     */
+    const deleteAction = await discardUser();
   } catch (error) {
     next(error);
   }

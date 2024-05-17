@@ -1,6 +1,7 @@
 import {
   createNewChat,
   discardChat,
+  getChatMembers,
   listAllChats,
 } from "../services/chat.service.js";
 import { errorHandler } from "../utils/error.js";
@@ -25,6 +26,21 @@ export const createChat = async (req, res, next) => {
     next(error);
   }
 };
+export const updateChat = async (req, res, next) => {
+  try {
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const listChatMembers = async () => {
+  try {
+    const chatMembers = await getChatMembers(req.params.id);
+    res.status(200).json(chatMembers);
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const deleteChat = async (req, res, next) => {
   try {
@@ -35,4 +51,9 @@ export const deleteChat = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+export const archiveChat = async (req, res, next) => {
+  try {
+  } catch (error) {}
 };

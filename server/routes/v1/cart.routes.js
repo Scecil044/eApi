@@ -6,6 +6,7 @@ import {
   getCartItems,
   getStats,
 } from "../../controllers/cart.controller.js";
+import { createChat, deleteChat } from "../../controllers/chat.controller.js";
 
 const router = express.Router();
 
@@ -18,5 +19,6 @@ router.delete("/:id", deleteCartItem);
 //                                 Aggregations
 // ==================================================================================
 router.get("/stats", getStats);
+
 
 export default router;

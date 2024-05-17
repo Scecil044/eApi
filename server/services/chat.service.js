@@ -1,5 +1,6 @@
 import Chat from "../models/Chat,model.js";
 import Message from "../models/Message.model.js";
+import { findUserById } from "./user.service.js";
 
 export const findChatById = async (chatId) => {
   try {
@@ -8,6 +9,7 @@ export const findChatById = async (chatId) => {
       .populate("userId")
       .populate("members");
     if (!chat) throw new Error("chat not found!");
+    if (!chat) throw new Error("chat not found in db");
     return chat;
   } catch (error) {
     throw new Error("could not find chat by ID");
@@ -50,5 +52,18 @@ export const listAllChats = async () => {
     return chats;
   } catch (error) {
     throw new Error("cannot list all chats");
+  }
+};
+export const getChatMembers = async (chatId) => {
+  try {
+    const chat = await findChatById(chatId);
+    const chatMembers = chat.members.map((member) => memberId);
+    const memberPromises = chatMembers.map((memberId) =>
+      findUserById(memberId)
+    );
+    const members = await Promise.all(memberPromises);
+    return members;
+  } catch (error) {
+    throw new Error(error);
   }
 };
