@@ -1,5 +1,5 @@
 import { config } from "../utils/config.js";
-import { getAllSystemUsers } from "./user.service";
+import { getAllSystemUsers } from "./user.service.js";
 import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport(config);
