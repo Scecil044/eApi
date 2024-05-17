@@ -1,0 +1,1 @@
+note that the function to filter users and the function to search products filtered by business id have been set up
