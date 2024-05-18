@@ -7,6 +7,7 @@ export const findUserByEmail = async (email) => {
     const isUser = await User.findOne({ email });
     return isUser;
   } catch (error) {
+    console.log(error);
     throw new Error("could not find user by email", error);
   }
 };

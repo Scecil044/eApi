@@ -10,7 +10,7 @@ import { auth } from "../../utils/auth.js";
 const router = new Router();
 
 router.use("/auth", authRoutes);
-router.use("/roles", roleRoutes);
+router.use("/roles", auth, roleRoutes);
 router.use("/users", userRoutes);
 router.use("/products", productsRoutes);
 router.use("/cart", auth, cartRoutes); // check if auth works on this route as it is

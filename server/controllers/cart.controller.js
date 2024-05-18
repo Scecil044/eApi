@@ -1,4 +1,4 @@
-import { getCartsStats, getChatMembers } from "../services/chat.service.js";
+import { getChatMembers } from "../services/chat.service.js";
 import { errorHandler } from "../utils/error.js";
 
 export const getCartItems = async (req, res, next) => {
@@ -37,6 +37,7 @@ export const listChatMembers = async (req, res, next) => {
     next(error);
   }
 };
+
 // ==================================================================================
 //                                 Aggregations
 // ==================================================================================

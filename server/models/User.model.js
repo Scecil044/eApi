@@ -1,5 +1,10 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+
+const MetaDataSchema = new mongoose.Schema({
+  gender: { type: String },
+});
+
 const UserSchema = new mongoose.Schema(
   {
     businessId: { type: mongoose.Types.ObjectId, ref: "Business" },
@@ -7,24 +12,26 @@ const UserSchema = new mongoose.Schema(
     lastName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     phoneNumber: { type: String, required: true },
-    profilePicture: { type: String, required: true },
+    profilePicture: { type: String },
+    gender: { type: String, required: true, enum: ["male", "female"] },
     password: { type: String, required: true },
-    role: { type: String, required: true, default: "user" },
+    role: { type: mongoose.Types.ObjectId, required: true, ref: "Role" },
     isActive: { type: Boolean, default: true },
     isDeleted: { type: Boolean, default: false },
     isBlackListed: { type: Boolean, default: false },
-    metaData: { type: Object },
+    metaData: { type: MetaDataSchema },
   },
   { timestamps: true }
 );
 
 UserSchema.pre("save", async function (next) {
-  if (!this.isDirectModified("password")) {
-    next();
+  if (!this.isModified("password")) {
+    return next();
   }
   try {
-    const hashedPassword = await bcrypt.hash(this.password);
+    const hashedPassword = await bcrypt.hash(this.password, 10);
     this.password = hashedPassword;
+    next();
   } catch (error) {
     throw new Error("could not hash password", error);
   }

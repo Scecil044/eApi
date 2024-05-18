@@ -10,31 +10,44 @@ export const authenticateUser = async () => {};
 
 export const registerUser = async (reqBody) => {
   try {
-    const {
-      email,
-      password,
-      firstName,
-      lastName,
-      phoneNumber,
-      businessName,
-      yearFounded,
-      businessEmail,
-      metaData,
-      category,
-    } = reqBody;
-    const isUser = await findUserByEmail(email);
+    const isUser = await findUserByEmail(reqBody.email);
     if (isUser) throw new Error("Email taken");
     // find role
-    const selectedRole = await findRoleByRoleId(reqBody.role);
+    let roleID;
+    const role = reqBody.role;
+    switch (role) {
+      case role === "superAdmin":
+        roleID = 1;
+        break;
+      case role === "admin":
+        roleID = 2;
+        break;
+      case role === "user":
+        roleID = 3;
+        break;
+      case role === "trader":
+        roleID = 4;
+        break;
+      default:
+        roleID = 3;
+    }
+    const selectedRole = await findRoleByRoleId(roleID);
     const newUser = await User.create({
-      email,
-      password,
-      phoneNumber,
-      firstName,
-      lastName,
+      email: reqBody.email,
+      password: reqBody.password,
+      phoneNumber: reqBody.phoneNumber,
+      firstName: reqBody.firstName,
+      lastName: reqBody.lastName,
       role: selectedRole._id,
+      gender: reqBody.gender,
     });
-    if (category || businessEmail || businessName || yearFounded || metaData) {
+    if (
+      reqBody.category ||
+      reqBody.businessEmail ||
+      reqBody.businessName ||
+      reqBody.yearFounded ||
+      reqBody.metaData
+    ) {
       const businessData = await createNewBusiness(req.body);
       if (!businessData)
         return next(errorHandler("could not create new business"));
@@ -58,18 +71,20 @@ export const registerUser = async (reqBody) => {
     // await notifyUser(emailBody);
     return createdUser;
   } catch (error) {
+    console.log(error);
     throw new Error("registration process failure", error);
   }
 };
 export const loginUser = async (email, password) => {
   try {
     const user = await findUserByEmail(email);
-    if (!user) next(errorHandler(400, "user not found"));
+    // console.log(user);
     const isMatch = await user.comparePasswords(password);
-    if (!isMatch) return next(errorHandler(400, "invalid credentials"));
+    if (!isMatch) return next(errorHandler(400, "invalid credentials!!"));
     user.password = undefined;
     return user;
   } catch (error) {
+    console.log(error);
     throw new Error("failed to authenticate!!");
   }
 };

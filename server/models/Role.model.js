@@ -4,9 +4,9 @@ const RoleSchema = new mongoose.Schema(
   {
     roleName: {
       type: String,
-      enum: ["admin", "user", "trader", "superAdmin"],
     },
-    roleId: { type: Number, required: true, enum: [1, 2, 3, 4, 5, 6, 7, 8, 9] },
+    roleId: { type: Number, required: true },
+    isDeleted: { type: Boolean, default: false },
     createdBy: { type: mongoose.Types.ObjectId, ref: "User" },
     updatedBy: { type: mongoose.Types.ObjectId, ref: "User" },
     deletedBy: { type: mongoose.Types.ObjectId, ref: "User" },

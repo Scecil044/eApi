@@ -1,5 +1,6 @@
+import Role from "../models/Role.model.js";
 import { loginUser, registerUser } from "../services/auth.service.js";
-import { findRoleByRoleId } from "../services/role.service.js";
+import { findRoleByName, findRoleByRoleId } from "../services/role.service.js";
 import { findUserByEmail, findUserById } from "../services/user.service.js";
 import { errorHandler } from "../utils/error.js";
 import { generateToken } from "../utils/generateToken.js";
@@ -11,17 +12,28 @@ export const login = async (req, res, next) => {
     if (!email || !password)
       return next(errorHandler(400, "please provide all required fields"));
     const authenticatedUser = await loginUser(email, password);
-    const role = await findRoleByRoleId(authenticatedUser.roleName);
+    const role = await Role.findById(authenticatedUser.role);
+
+    authenticatedUser.role = undefined;
+    const userWithRole = {
+      ...authenticatedUser.toObject(), // Convert Mongoose document to plain JavaScript object
+      userRole: role ? role.roleName : null,
+    };
+
     res
       .cookie(
         "access_token",
-        generateToken(authenticatedUser.email, authenticatedUser._id, role._id),
+        generateToken(
+          authenticatedUser.email,
+          authenticatedUser._id,
+          role.roleName
+        ),
         {
           httpOnly: true,
         }
       )
       .status(200)
-      .json(authenticatedUser);
+      .json(userWithRole);
   } catch (error) {
     next(error);
   }
@@ -29,6 +41,30 @@ export const login = async (req, res, next) => {
 
 export const register = async (req, res, next) => {
   try {
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      phoneNumber,
+      businessName,
+      yearFounded,
+      businessEmail,
+      metaData,
+      category,
+      role,
+      gender,
+    } = req.body;
+    if (
+      !phoneNumber ||
+      !email ||
+      !password ||
+      !firstName ||
+      !lastName ||
+      !role ||
+      !gender
+    )
+      return next(errorHandler(400, "Please provide all required fields"));
     const user = await registerUser(req.body);
     if (!user) return next(errorHandler(400, "failed to register user!"));
     user.password = undefined;
