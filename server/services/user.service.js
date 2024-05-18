@@ -85,6 +85,47 @@ export const updateUserDetails = async (userId, reqBody) => {
     throw new Error("Failed to update details!");
   }
 };
+// export const getUserRole = async (roleString) => {
+//   try {
+//     const pipeline = [
+//       {
+//         $match: {
+//           isDeleted: false,
+//         },
+//       },
+//       {
+//         $lookup: {
+//           from: "roles",
+//           foreignField: "role",
+//           localField: "_id",
+//           as: "roleDetails",
+//         },
+//       },
+//       {
+//         $group: {
+//           _id: null,
+//           "$roleDetails.roleName": {
+//             $eq: roleString,
+//           },
+//         },
+//       },
+//       {
+//         $project: {
+//           firstName: 1,
+//           lastName: 1,
+//           email: 1,
+//           phoneNumber: 1,
+//           roleName: "$roleDetails.roleName",
+//         },
+//       },
+//     ];
+//     // return users
+//     const users = await User.aggregate(pipeline);
+//     return users;
+//   } catch (error) {
+//     throw new Error("could not find user role");
+//   }
+// };
 
 // ==================================================================================
 //                                 Aggregations
