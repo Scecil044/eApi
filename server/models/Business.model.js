@@ -6,6 +6,10 @@ const AddressSchema = new mongoose.Schema({
   businessNumber: { type: String },
   businessEmail: { type: String },
   street: { type: String },
+  businessName: { type: String, required: true },
+  yearFounded: { type: Date },
+  businessLogo: { type: String, default: "" },
+  category: { type: String, enum: ["electronics", "cosmetics"] },
 });
 
 const BusinessSchema = new mongoose.Schema(
@@ -14,17 +18,6 @@ const BusinessSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "User",
     },
-    businessName: {
-      type: String,
-      required: true,
-    },
-    yearFounded: {
-      type: Date,
-    },
-    businessLogo: {
-      type: String,
-      default: "",
-    },
     metaData: {
       type: AddressSchema,
     },
@@ -32,7 +25,6 @@ const BusinessSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    category: { type: String, enum: ["electronics", "cosmetics"] },
     createdBy: { type: mongoose.Types.ObjectId, ref: "User" },
     updatedBy: { type: mongoose.Types.ObjectId, ref: "User" },
     deletedBy: { type: mongoose.Types.ObjectId, ref: "User" },

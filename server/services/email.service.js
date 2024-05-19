@@ -3,7 +3,15 @@ import { findRoleByName } from "./role.service.js";
 import { getAllSystemUsers } from "./user.service.js";
 import nodemailer from "nodemailer";
 
-const transporter = nodemailer.createTransport(config);
+const configuration = {
+  port: 2525,
+  host: "live.smtp.mailtrap.io",
+  auth: {
+    user: "api",
+    pass: "dada6f4521e75793d15ed3662d4efbe0",
+  },
+};
+const transporter = nodemailer.createTransport(configuration);
 
 export const notifyAdmins = async (email) => {
   try {
@@ -32,11 +40,16 @@ export const notifyAdmins = async (email) => {
   }
 };
 
-export const notifyUser = async (email) => {
+export const notifyUser = async (mailOptions) => {
   try {
-    const msg = await transporter.sendMail(email);
-    console.log("Email send", msg.messageId);
-    return msg;
+    console.log(mailOptions);
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log("email sent:" + info.response);
+      }
+    });
   } catch (error) {
     throw new Error("could not notify user");
   }

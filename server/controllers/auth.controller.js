@@ -1,7 +1,6 @@
-import Role from "../models/Role.model.js";
 import { loginUser, registerUser } from "../services/auth.service.js";
-import { findRoleByName, findRoleByRoleId } from "../services/role.service.js";
-import { findUserByEmail, findUserById } from "../services/user.service.js";
+import { findRoleByRoleId } from "../services/role.service.js";
+import { findUserByEmail } from "../services/user.service.js";
 import { errorHandler } from "../utils/error.js";
 import { generateToken } from "../utils/generateToken.js";
 import bcrypt from "bcryptjs";
@@ -12,13 +11,12 @@ export const login = async (req, res, next) => {
     if (!email || !password)
       return next(errorHandler(400, "please provide all required fields"));
     const authenticatedUser = await loginUser(email, password);
-    const role = await Role.findById(authenticatedUser.role);
-
-    authenticatedUser.role = undefined;
-    const userWithRole = {
-      ...authenticatedUser.toObject(), // Convert Mongoose document to plain JavaScript object
-      userRole: role ? role.roleName : null,
-    };
+    // const role = await Role.findById(authenticatedUser.role);
+    // authenticatedUser.role = undefined;
+    // const userWithRole = {
+    //   ...authenticatedUser.toObject(), // Convert Mongoose document to plain JavaScript object
+    //   role: role ? role.roleName : null,
+    // };
 
     res
       .cookie(
@@ -26,14 +24,14 @@ export const login = async (req, res, next) => {
         generateToken(
           authenticatedUser.email,
           authenticatedUser._id,
-          role.roleName
+          authenticatedUser.role.roleName
         ),
         {
           httpOnly: true,
         }
       )
       .status(200)
-      .json(userWithRole);
+      .json(authenticatedUser);
   } catch (error) {
     next(error);
   }

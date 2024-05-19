@@ -34,6 +34,7 @@ export const findRoleByRoleId = async (roleID) => {
     if (!role) throw new Error("Role not found ");
     return role;
   } catch (error) {
+    console.log(error)
     throw new Error("could not find role by provided roleId");
   }
 };

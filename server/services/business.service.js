@@ -1,20 +1,35 @@
 import Business from "../models/Business.model.js";
-import moment from "moment";
+import { findUserById } from "./user.service.js";
 
 export const createNewBusiness = async (reqBody) => {
   try {
-    const { businessLogo, businessName, yearFounded, metaData, category } =
-      reqBody;
-    const business = await Business.create({
-      businessName,
+    const {
       businessLogo,
+      businessName,
       yearFounded,
-      metaData,
+      businessNumber,
+      businessEmail,
+      address,
       category,
-      createdBy: req.user.id,
+      city,
+      street,
+    } = reqBody.metaData;
+    const business = await Business.create({
+      metaData: {
+        address,
+        city,
+        street,
+        businessNumber,
+        businessEmail,
+        category,
+        businessLogo,
+        businessName,
+        yearFounded,
+      },
     });
     return business;
   } catch (error) {
+    console.log(error);
     throw new Error("could not save new business!");
   }
 };
@@ -29,6 +44,24 @@ export const getBusinessById = async (id) => {
   }
 };
 
+export const editBusinessDetails = async (
+  businessId,
+  reqBody,
+  authenticatedUser
+) => {
+  try {
+    const business = await getBusinessById(businessId);
+    const updates = Object.keys(reqBody);
+    updates.forEach((update) => {
+      business[update] = reqBody[update];
+    });
+    await business.save();
+    return business;
+  } catch (error) {
+    console.log(error);
+    throw new Error(error);
+  }
+};
 // ==================================================================================
 //                                 Aggregations
 // ==================================================================================

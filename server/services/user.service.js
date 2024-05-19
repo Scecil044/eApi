@@ -1,21 +1,26 @@
 import { error } from "console";
 import User from "../models/User.model.js";
 import moment from "moment";
+import { findRoleByName, findRoleByRoleId } from "./role.service.js";
 
 export const findUserByEmail = async (email) => {
   try {
-    const isUser = await User.findOne({ email });
+    const isUser = await User.findOne({ email }).populate("role", "roleName");
     return isUser;
   } catch (error) {
     console.log(error);
     throw new Error("could not find user by email", error);
   }
 };
+// function implementation works well
 export const findUserById = async (userId) => {
   try {
-    const isUser = await userId.findUserById(userId);
+    const isUser = await User.findById(userId).populate("role", "roleName");
+
+    // return isUser ? { ...isUser.toObject(), role: isUser.role.roleName } : null;
     return isUser;
   } catch (error) {
+    console.log(error);
     throw new Error("could not find user by id", error);
   }
 };
@@ -30,26 +35,42 @@ export const discardUser = async (userId) => {
     throw new Error("failed to delete user", error);
   }
 };
+/*
+ *Functionality works well
+ * it basically toggles between active and inactive states for user
+ */
 export const deactivateUserAccount = async (userId) => {
   try {
     const isUser = await findUserById(userId);
-    if (!isUser) throw new Error("Could not find user by provided id", error);
-    isUser.isActive = false;
-    await isUser.save;
+    if (!isUser) throw new Error("Could not find user by provided id");
+    isUser.isActive = !isUser.isActive;
+    await isUser.save();
     isUser.password = undefined;
     return isUser;
   } catch (error) {
+    console.log(error);
     throw new Error("Failed to deactivate user account", error);
   }
 };
-export const getUsersExceptAuthenticatedUser = async () => {
+export const getUsersExceptAuthenticatedUser = async (reqUser) => {
   try {
     const systemUsers = await User.find({
-      _id: { $ne: req.user.id },
+      _id: { $ne: reqUser.id },
       isDeleted: false,
-    }).select("-password");
+    })
+      .select("-password")
+      .populate("role", "roleName");
+    // Extracting roles from users
+    // const usersWithRoles = systemUsers.map((user) => {
+    //   return {
+    //     ...user.toObject(),
+    //     role: user.role ? user.role.roleName : null,
+    //   };
+    // });
+
     return systemUsers;
   } catch (error) {
+    console.log(error);
     throw new Error("Could not list users");
   }
 };
@@ -64,6 +85,7 @@ export const getAllSystemUsers = async () => {
       "firstName lastName email phoneNumber businessId isDeleted isActive isBlackListed role metaData",
       options
     );
+
     return systemUsers;
   } catch (error) {
     throw new Error("Could not list all system users");
@@ -72,17 +94,22 @@ export const getAllSystemUsers = async () => {
 
 export const updateUserDetails = async (userId, reqBody) => {
   try {
-    const user = await findUserById(userId);
-    if (!user) throw new Error("user not found");
-    const updates = reqBody;
+    const userDoc = await findUserById(userId);
+    if (!userDoc) throw new Error("user not found");
+    const roleId = await findRoleByName(reqBody.role);
+    reqBody.role = roleId;
+
+    const updates = Object.keys(reqBody);
+    console.log(updates);
     updates.forEach((update) => {
-      user[update] = reqBody[update];
+      userDoc[update] = reqBody[update];
     });
-    await user.save();
-    user.password = undefined;
-    return user;
+    await userDoc.save();
+    userDoc.password = undefined;
+    return userDoc;
   } catch (error) {
-    throw new Error("Failed to update details!");
+    console.log(error);
+    throw new Error("Failed to update details! ", error);
   }
 };
 // export const getUserRole = async (roleString) => {
@@ -249,39 +276,23 @@ export const registrationsWithinTheLastSixMonths = async () => {
  * This function returns the total number of users with businesses
  */
 export const getTradersCount = async () => {
+  const trader = await findRoleByName("trader");
   const pipeline = [
+    {
+      $lookup: {
+        from: "roles",
+        localField: "role",
+        foreignField: "_id",
+        as: "roleDetails",
+      },
+    },
+    {
+      $unwind: "$roleDetails",
+    },
     {
       $match: {
         isDeleted: false,
-        role: "trader",
-      },
-    },
-    {
-      $lookUp: {
-        from: "businesses",
-        localField: "businessId",
-        foreignField: "_id",
-        as: "businessDetails",
-      },
-    },
-    {
-      $unwind: "$businessDetails",
-    },
-    {
-      $project: {
-        firstName: 1,
-        lastName: 1,
-        email: 1,
-        phoneNumber: 1,
-        profilePicture: {
-          $cond: {
-            if: { $gte: ["$profilePicture", null] },
-            then: "$profilePicture",
-            else: "",
-          },
-        },
-        businessName: "$businessDetails.businessName",
-        businessEmail: "$businessDetails.businessEmail",
+        "roleDetails._id": trader._id,
       },
     },
     {
@@ -292,10 +303,29 @@ export const getTradersCount = async () => {
         },
       },
     },
+    // {
+    //   $project: {
+    //     firstName: 1,
+    //     lastName: 1,
+    //     email: 1,
+    //     phoneNumber: 1,
+    //     profilePicture: {
+    //       $cond: {
+    //         if: { $gte: ["$profilePicture", null] },
+    //         then: "$profilePicture",
+    //         else: "",
+    //       },
+    //     },
+    //     businessName: "$businessDetails.businessName",
+    //     businessEmail: "$businessDetails.businessEmail",
+    //   },
+    // },
   ];
 
   const tradersCount = await User.aggregate(pipeline);
   if (tradersCount > 0) {
     return tradersCount[0].total;
+  } else {
+    return 0;
   }
 };

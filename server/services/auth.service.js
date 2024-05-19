@@ -6,58 +6,89 @@ import { findRole, findRoleByRoleId } from "./role.service.js";
 
 import { findUserByEmail, findUserById } from "./user.service.js";
 
-export const authenticateUser = async () => {};
-
-export const registerUser = async (reqBody) => {
+export const createUser = async (reqBody) => {
   try {
-    const isUser = await findUserByEmail(reqBody.email);
-    if (isUser) throw new Error("Email taken");
+    let newUser;
+    let newBusiness;
     // find role
     let roleID;
     const role = reqBody.role;
     switch (role) {
-      case role === "superAdmin":
+      case "superAdmin":
         roleID = 1;
         break;
-      case role === "admin":
+      case "admin":
         roleID = 2;
         break;
-      case role === "user":
+      case "user":
         roleID = 3;
         break;
-      case role === "trader":
+      case "trader":
         roleID = 4;
         break;
       default:
         roleID = 3;
     }
+    // console.log("Selected role", roleID);
     const selectedRole = await findRoleByRoleId(roleID);
-    const newUser = await User.create({
-      email: reqBody.email,
-      password: reqBody.password,
-      phoneNumber: reqBody.phoneNumber,
-      firstName: reqBody.firstName,
-      lastName: reqBody.lastName,
-      role: selectedRole._id,
-      gender: reqBody.gender,
-    });
-    if (
-      reqBody.category ||
-      reqBody.businessEmail ||
-      reqBody.businessName ||
-      reqBody.yearFounded ||
-      reqBody.metaData
-    ) {
-      const businessData = await createNewBusiness(req.body);
-      if (!businessData)
-        return next(errorHandler("could not create new business"));
+    if (selectedRole.roleName === "trader") {
+      if (
+        !reqBody.metaData.address ||
+        !reqBody.metaData.city ||
+        !reqBody.metaData.businessNumber ||
+        !reqBody.metaData.businessEmail ||
+        !reqBody.metaData.street ||
+        !reqBody.metaData.businessName ||
+        !reqBody.metaData.yearFounded ||
+        !reqBody.metaData.category
+      ) {
+        throw new Error("Please provide all required fields!");
+      }
+      const businessData = await createNewBusiness(reqBody);
+      newBusiness = businessData;
+
+      newUser = await User.create({
+        email: reqBody.email,
+        password: reqBody.password,
+        phoneNumber: reqBody.phoneNumber,
+        firstName: reqBody.firstName,
+        lastName: reqBody.lastName,
+        role: selectedRole._id,
+        gender: reqBody.gender,
+        businessId: newBusiness._id,
+      });
+      const createdUser = await User.findById(newUser._id, {
+        password: 0,
+      }).populate("businessId");
+      return createdUser;
+    } else {
+      newUser = await User.create({
+        email: reqBody.email,
+        password: reqBody.password,
+        phoneNumber: reqBody.phoneNumber,
+        firstName: reqBody.firstName,
+        lastName: reqBody.lastName,
+        role: selectedRole._id,
+        gender: reqBody.gender,
+      });
+      const createdUser = await User.findById(newUser._id, {
+        password: 0,
+      }).populate("businessId");
+      return createdUser;
     }
-    const createdUser = await User.findById(newUser._id, {
-      password: 0,
-    }).populate("businessId");
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
+export const registerUser = async (reqBody) => {
+  try {
+    const isUser = await findUserByEmail(reqBody.email);
+    if (isUser) throw new Error("Email taken");
+    const newUser = await createUser(reqBody);
     // const emailBody = {
-    //   from: process.env.SMTP_EMAIL,
-    //   to: createdUser.email,
+    //   from: "scecil072@gmail.com",
+    //   to: [createdUser.email],
     //   text: "Congratulations!!",
     //   subject: "Account Creation",
     //   html: `<h2>New Registration s</h2>
@@ -69,10 +100,10 @@ export const registerUser = async (reqBody) => {
     //   `,
     // };
     // await notifyUser(emailBody);
-    return createdUser;
+    return newUser;
   } catch (error) {
     console.log(error);
-    throw new Error("registration process failure", error);
+    throw new Error(error);
   }
 };
 export const loginUser = async (email, password) => {
