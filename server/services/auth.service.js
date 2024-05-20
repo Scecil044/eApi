@@ -9,7 +9,6 @@ import { findUserByEmail, findUserById } from "./user.service.js";
 export const createUser = async (reqBody) => {
   try {
     let newUser;
-    let newBusiness;
     // find role
     let roleID;
     const role = reqBody.role;
@@ -45,7 +44,6 @@ export const createUser = async (reqBody) => {
         throw new Error("Please provide all required fields!");
       }
       const businessData = await createNewBusiness(reqBody);
-      newBusiness = businessData;
 
       newUser = await User.create({
         email: reqBody.email,
@@ -55,8 +53,11 @@ export const createUser = async (reqBody) => {
         lastName: reqBody.lastName,
         role: selectedRole._id,
         gender: reqBody.gender,
-        businessId: newBusiness._id,
       });
+      newUser.businessId.push(businessData._id);
+      businessData.userId = newUser._id;
+      await businessData.save();
+      await newUser.save();
       const createdUser = await User.findById(newUser._id, {
         password: 0,
       }).populate("businessId");

@@ -1,4 +1,7 @@
-import { editBusinessDetails } from "../services/business.service.js";
+import {
+  editBusinessDetails,
+  getAllBusinessesCount,
+} from "../services/business.service.js";
 import { findUserById } from "../services/user.service.js";
 import { errorHandler } from "../utils/error.js";
 
@@ -17,6 +20,24 @@ export const updateBusiness = async (req, res, next) => {
       req.user.id
     );
     res.status(200).json(business);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getBusinesses = async (req, res, next) => {
+  try {
+  } catch (error) {
+    next(error);
+  }
+};
+// ==================================================================================
+//                                 Aggregations
+// ==================================================================================
+export const countBusinesses = async (req, res, next) => {
+  try {
+    const result = await getAllBusinessesCount();
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }

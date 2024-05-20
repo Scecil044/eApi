@@ -62,6 +62,23 @@ export const editBusinessDetails = async (
     throw new Error(error);
   }
 };
+
+export const listAllBusinesses = async () => {
+  try {
+    const options = {};
+    const query = {
+      isDeleted: false,
+    };
+    const businesses = await Business.find(query, null, options).populate(
+      "userId",
+      "firstName lastName email phoneNumber"
+    );
+    return businesses;
+  } catch (error) {
+    console.log(error);
+    throw new Error("could not list all businesses");
+  }
+};
 // ==================================================================================
 //                                 Aggregations
 // ==================================================================================

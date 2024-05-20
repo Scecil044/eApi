@@ -7,7 +7,7 @@ const MetaDataSchema = new mongoose.Schema({
 
 const UserSchema = new mongoose.Schema(
   {
-    businessId: { type: mongoose.Types.ObjectId, ref: "Business" },
+    businessId: [{ type: mongoose.Types.ObjectId, ref: "Business" }],
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
