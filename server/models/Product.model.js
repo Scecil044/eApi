@@ -14,6 +14,7 @@ const ProductSchema = new mongoose.Schema(
       enum: ["soldOut", "available"],
     },
     images: { type: Array },
+    reviews: { type: Array },
     isDeleted: { type: Boolean, default: false },
     isFlashSale: { type: Boolean, default: false },
     createdBy: { type: mongoose.Types.ObjectId, ref: "User" },

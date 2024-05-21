@@ -1,15 +1,19 @@
 import {
+  addMemberToChat,
+  addToArchive,
   createNewChat,
   discardChat,
+  discardMessage,
   getChatMembers,
   listAllChats,
+  removeMemberFromChat,
 } from "../services/chat.service.js";
 import { errorHandler } from "../utils/error.js";
 
 /**
  * Admin controller function to get all chats
  */
-export const getAllChats = async () => {
+export const getAllChats = async (req, res, next) => {
   try {
     const chats = await listAllChats();
     if (!chats) return next(errorHandler("could not find chats"));
@@ -33,7 +37,7 @@ export const updateChat = async (req, res, next) => {
   }
 };
 
-export const listChatMembers = async () => {
+export const listChatMembers = async (req, res, next) => {
   try {
     const chatMembers = await getChatMembers(req.params.id);
     res.status(200).json(chatMembers);
@@ -55,5 +59,45 @@ export const deleteChat = async (req, res, next) => {
 
 export const archiveChat = async (req, res, next) => {
   try {
-  } catch (error) {}
+    await addToArchive(req.params.id);
+    res.status(200).json("chat archived");
+  } catch (error) {
+    next(error);
+  }
+};
+// function to add member to chat
+export const addContributor = async (req, res, next) => {
+  try {
+    const result = await addMemberToChat(
+      req.params.chatId,
+      req.params.memberId
+    );
+
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+// function to remove a contributor from chat
+export const removeMember = async (req, res, next) => {
+  try {
+    const result = await removeMemberFromChat(
+      req.params.chatId,
+      req.params.memberId
+    );
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+export const deleteMessage = async (req, res, next) => {
+  try {
+    const response = await discardMessage(
+      req.params.chatId,
+      req.params.messageId
+    );
+    res.status(200).json("Message deleted!");
+  } catch (error) {
+    next(error);
+  }
 };
