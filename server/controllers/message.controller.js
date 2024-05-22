@@ -2,7 +2,7 @@ import {
   createMessage,
   filterMessages,
   replyMessage,
-} from "../services/message.service";
+} from "../services/message.service.js";
 import { errorHandler } from "../utils/error.js";
 
 export const createResponse = async (req, res, next) => {

@@ -6,12 +6,16 @@ import colors from "colors";
 import path from "path";
 import appRoutes from "./routes/v1/index.js";
 import { connectDB } from "./config/DB.js";
+import { Server } from "socket.io";
+import { createServer } from "node:http";
 
 dotenv.config();
 connectDB();
 const app = express();
 const port = 4008 || process.env.PORT;
 const __dirname = path.resolve();
+const server = createServer(app);
+const io = new Server(server);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -34,6 +38,11 @@ app.use((err, req, res, next) => {
     message,
   });
 });
-app.listen(port, () => {
+
+io.on("connection", (socket) => {
+  console.log("a user connected");
+});
+
+server.listen(port, () => {
   console.log(`App running on http://localhost:${port}`.cyan.underline);
 });

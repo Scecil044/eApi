@@ -4,7 +4,7 @@ const MessageSchema = new mongoose.Schema(
     chatId: { type: mongoose.Types.ObjectId, ref: "Chat" },
     text: { type: String },
     isRead: { type: Boolean, default: false },
-    isDeleted: { type: boolean, default: false },
+    isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

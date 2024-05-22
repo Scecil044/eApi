@@ -209,6 +209,45 @@ export const filterProductsByBusiness = async (reqBody) => {
           ],
         },
       },
+      {
+        $project: {
+          title: 1,
+          shortDescription: 1,
+          longDescription: 1,
+          price: 1,
+          quantity: 1,
+          color: 1,
+          category: 1,
+          product_images: {
+            $cond: {
+              if: { $eq: ["$images", null] },
+              then: [],
+              else: "$images",
+            },
+          },
+          reviews: 1,
+          status: 1,
+          isFlashSale: 1,
+          size: 1,
+          businessLogo: {
+            $cond: {
+              if: { $eq: ["$businessDetails.metaData.businessLogo", null] },
+              then: "",
+              else: "$businessDetails.metaData.businessLogo",
+            },
+          },
+          businessName: "$businessDetails.metaData.businessName",
+          businessEmail: "$businessDetails.metaData.businessEmail",
+          businessNumber: "$businessDetails.metaData.businessNumber",
+          businessAddress: {
+            $concat: [
+              { ifNull: ["$businessDetails.metaData.street", ""] },
+              ",",
+              { ifNull: ["$businessDetails.metaData.city", ""] },
+            ],
+          },
+        },
+      },
     ];
     const products = await Product.aggregate(pipeline);
     return products;
