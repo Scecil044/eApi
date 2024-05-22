@@ -1,3 +1,4 @@
+import { createLog } from "../services/log.service.js";
 import { findRoleByRoleId } from "../services/role.service.js";
 import {
   deactivateUserAccount,
@@ -9,6 +10,8 @@ import {
   updateUserDetails,
 } from "../services/user.service.js";
 import { errorHandler } from "../utils/error.js";
+import { logger } from "../utils/winstonLogger.js";
+import httpStatus from "http-status";
 
 /*
  *Check the implementation of this
@@ -20,8 +23,16 @@ export const getUsers = async (req, res, next) => {
       return next(
         errorHandler(400, "no users have been listed in the database yet")
       );
-    res.status(200).json(users);
+    const logString = logger.info(
+      `${req.user.userName} accessed get users route`
+    ).transports[0].logString;
+    await createLog(req.user.id, logString);
+    res.status(httpStatus.OK).json(users);
   } catch (error) {
+    const logString = logger.info(
+      `${req.user.userName} unable to access the list of all users in the database`
+    ).transports[0].logString;
+    await createLog(req.user.id, logString);
     next(error);
   }
 };
@@ -77,6 +88,10 @@ export const suspendUser = async (req, res, next) => {
 export const getTotalNumberOfTraders = async (req, res, next) => {
   try {
     const traders = await getTradersCount();
+    const logString = logger.info(
+      `${req.user.userName} accessed total number of traders`
+    ).transports[0].logString;
+    await createLog(req.user.id, logString);
     res.status(200).json(traders);
   } catch (error) {
     next(error);

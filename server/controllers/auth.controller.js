@@ -23,6 +23,8 @@ export const login = async (req, res, next) => {
         "access_token",
         generateToken(
           authenticatedUser.email,
+          authenticatedUser.firstName,
+          authenticatedUser.lastName,
           authenticatedUser._id,
           authenticatedUser.role.roleName
         ),
