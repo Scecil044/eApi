@@ -5,6 +5,7 @@ import { errorHandler } from "../utils/error.js";
 import { generateToken } from "../utils/generateToken.js";
 import bcrypt from "bcryptjs";
 
+
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;

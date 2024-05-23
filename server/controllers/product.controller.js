@@ -1,3 +1,4 @@
+import { createLog } from "../services/log.service.js";
 import {
   createNewProduct,
   deleteItem,
@@ -9,14 +10,23 @@ import {
   updateProductDetails,
 } from "../services/product.service.js";
 import { errorHandler } from "../utils/error.js";
+import { logger } from "../utils/winstonLogger.js";
 
 export const createProduct = async (req, res, next) => {
   try {
     const createdProduct = await createNewProduct(req.body);
     if (!createdProduct)
       return next(errorHandler(400, "Could not create product!"));
+    const logString = logger.info(
+      `${req.user.userName} accessed the create product route`
+    ).transports[0].logString;
+    await createLog(req.user.id, logString);
     res.status(200).json(createdProduct);
   } catch (error) {
+    const logString = logger.info(
+      `${req.user.userName} unable to access the create product route`
+    ).transports[0].logString;
+    await createLog(req.user.id, logString);
     next(error);
   }
 };
@@ -35,8 +45,16 @@ export const deleteProduct = async (req, res, next) => {
   try {
     const result = await deleteItem(req.params.id);
     if (!result) return next(errorHandler(400, "could not delete item"));
+    const logString = logger.info(
+      `${req.user.userName} accessed the delete product route`
+    ).transports[0].logString;
+    await createLog(req.user.id, logString);
     res.status(200).json("product deleted!");
   } catch (error) {
+    const logString = logger.info(
+      `${req.user.userName} unable to access the delete product route`
+    ).transports[0].logString;
+    await createLog(req.user.id, logString);
     next(error);
   }
 };

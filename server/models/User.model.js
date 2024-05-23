@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import { paginate } from "./plugins/paginatePlugin.js";
 
 const MetaDataSchema = new mongoose.Schema({
   gender: { type: String },
@@ -44,5 +45,6 @@ UserSchema.methods.comparePasswords = async function (enteredPassword) {
     throw new Error(error, "could not compare passwords");
   }
 };
+UserSchema.plugin(paginate);
 const User = mongoose.model("User", UserSchema);
 export default User;
