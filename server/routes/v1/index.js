@@ -8,6 +8,7 @@ import chatRoutes from "./chat.routes.js";
 import messageRoutes from "./message.routes.js";
 import paymentRoutes from "./payment.routes.js";
 import logRoutes from "./log.routes.js";
+import businessRoutes from "./business.routes.js";
 import { auth } from "../../utils/auth.js";
 
 const router = new Router();
@@ -21,5 +22,6 @@ router.use("/chat", auth, chatRoutes);
 router.use("/message", auth, messageRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/system/logs", logRoutes);
+router.use("/business", businessRoutes);
 
 export default router;

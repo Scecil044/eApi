@@ -2,6 +2,7 @@ import { error } from "console";
 import User from "../models/User.model.js";
 import moment from "moment";
 import { findRoleByName, findRoleByRoleId } from "./role.service.js";
+import { isRegExp } from "util/types";
 
 export const findUserByEmail = async (email) => {
   try {
@@ -303,23 +304,23 @@ export const getTradersCount = async () => {
         },
       },
     },
-    {
-      $project: {
-        firstName: 1,
-        lastName: 1,
-        email: 1,
-        phoneNumber: 1,
-        profilePicture: {
-          $cond: {
-            if: { $gte: ["$profilePicture", null] },
-            then: "$profilePicture",
-            else: "",
-          },
-        },
-        businessName: "$businessDetails.businessName",
-        businessEmail: "$businessDetails.businessEmail",
-      },
-    },
+    // {
+    //   $project: {
+    //     firstName: 1,
+    //     lastName: 1,
+    //     email: 1,
+    //     phoneNumber: 1,
+    //     profilePicture: {
+    //       $cond: {
+    //         if: { $gte: ["$profilePicture", null] },
+    //         then: "$profilePicture",
+    //         else: "",
+    //       },
+    //     },
+    //     businessName: "$businessDetails.businessName",
+    //     businessEmail: "$businessDetails.businessEmail",
+    //   },
+    // },
   ];
 
   const tradersCount = await User.aggregate(pipeline);
@@ -327,5 +328,72 @@ export const getTradersCount = async () => {
     return tradersCount[0].total;
   } else {
     return 0;
+  }
+};
+
+export const filterUsers = async (reqQuery) => {
+  try {
+    const limit = reqQuery.limit ? parseInt(reqQuery.limit) : 10;
+    const page = reqQuery.page ? parseInt(reqQuery.page) : 0;
+    const sortOrder = reqQuery.sortOrder ? parseInt(reqQuery.sortOrder) : -1;
+    const sortBy = reqQuery.sortBy || "createdAt";
+    const searchRegex = reqQuery.searchTerm
+      ? new RegExp(reqQuery.searchTerm, "i")
+      : null;
+    const pipeline = [
+      {
+        $match: {
+          isDeleted: false,
+          ...(searchRegex && {
+            $or: [
+              { firstName: { $regex: searchRegex } },
+              { lastName: { $regex: searchRegex } },
+              { email: { $regex: searchRegex } },
+              { phoneNumber: { $regex: searchRegex } },
+            ],
+          }),
+        },
+      },
+      {
+        $sort: {
+          [sortBy]: sortOrder,
+        },
+      },
+      {
+        $skip: page * limit,
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $facet: {
+          results: [
+            {
+              $project: {
+                _id: 1,
+                firstName: 1,
+                lastName: 1,
+                email: 1,
+              },
+            },
+          ],
+          totalCount: [{ $count: "count" }],
+        },
+      },
+      {
+        $unwind: "$totalCount",
+      },
+      {
+        $addFields: {
+          totalCount: { $ifNull: ["$totalCount.count", 0] },
+        },
+      },
+    ];
+
+    const result = await User.aggregate(pipeline);
+    return result;
+  } catch (error) {
+    console.log(error);
+    throw new Error("could not filter users");
   }
 };

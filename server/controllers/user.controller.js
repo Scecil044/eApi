@@ -2,6 +2,7 @@ import { createLog } from "../services/log.service.js";
 import {
   deactivateUserAccount,
   discardUser,
+  filterUsers,
   findUserById,
   getTradersCount,
   getUsersExceptAuthenticatedUser,
@@ -107,6 +108,22 @@ export const suspendUser = async (req, res, next) => {
   } catch (error) {
     const logString = logger.info(
       `${req.user.userName} unable to access the suspend user functionality for ${req.params.id}`
+    ).transports[0].logString;
+    await createLog(req.user.id, logString);
+    next(error);
+  }
+};
+export const filterSystemUsers = async (req, res, next) => {
+  try {
+    const filteredUsers = await filterUsers(req.query);
+    const logString = logger.info(
+      `${req.user.userName} accessed the filter users route, with search params ${req.query}`
+    ).transports[0].logString;
+    await createLog(req.user.id, logString);
+    res.status(200).json(filteredUsers);
+  } catch (error) {
+    const logString = logger.info(
+      `${req.user.userName} unable to access the filter users functionality`
     ).transports[0].logString;
     await createLog(req.user.id, logString);
     next(error);

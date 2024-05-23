@@ -1,9 +1,13 @@
 import {
   editBusinessDetails,
+  genericBusinessFilter,
   getAllBusinessesCount,
+  listAllBusinesses,
 } from "../services/business.service.js";
+import { createLog } from "../services/log.service.js";
 import { findUserById } from "../services/user.service.js";
 import { errorHandler } from "../utils/error.js";
+import { logger } from "../utils/winstonLogger.js";
 
 export const updateBusiness = async (req, res, next) => {
   try {
@@ -27,6 +31,10 @@ export const updateBusiness = async (req, res, next) => {
 
 export const getBusinesses = async (req, res, next) => {
   try {
+    const result = await listAllBusinesses();
+    if (!result)
+      return next(errorHandler(400, "could not list all businesses"));
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }
@@ -37,6 +45,16 @@ export const getBusinesses = async (req, res, next) => {
 export const countBusinesses = async (req, res, next) => {
   try {
     const result = await getAllBusinessesCount();
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const filterBusinesses = async (req, res, next) => {
+  try {
+    const result = await genericBusinessFilter(req.query);
+
     res.status(200).json(result);
   } catch (error) {
     next(error);

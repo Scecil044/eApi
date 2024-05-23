@@ -110,3 +110,107 @@ export const getAllBusinessesCount = async () => {
     throw new Error("failed to get business count", error);
   }
 };
+
+export const genericBusinessFilter = async (reqQuery) => {
+  try {
+    const searchRegex = reqQuery.searchTerm
+      ? new RegExp(reqQuery.searchTerm, "i")
+      : "";
+    const page = reqQuery.page ? parseInt(reqQuery.page) : 0;
+    const limit = reqQuery.limit ? parseInt(reqQuery.limit) : 10;
+    const sortOrder = reqQuery.sortOrder ? parseInt(reqQuery.sortOrder) : -1;
+    const sortBy = reqQuery.sortBy || "createdAt";
+    const pipeline = [
+      {
+        $lookup: {
+          from: "users",
+          foreignField: "userId",
+          localField: "_id",
+          as: "userDetails",
+        },
+      },
+      {
+        $unwind: "$userDetails",
+      },
+      {
+        $match: {
+          isDeleted: false,
+          $or: [
+            { "metaData.businessName": { $regex: searchRegex } },
+            { "metaData.businessEmail": { $regex: searchRegex } },
+            { "metaData.address": { $regex: searchRegex } },
+            { "metaData.city": { $regex: searchRegex } },
+            { "metaData.street": { $regex: searchRegex } },
+            { "userDetails.firstName": { $regex: searchRegex } },
+            { "userDetails.lastName": { $regex: searchRegex } },
+            { "userDetails.email": { $regex: searchRegex } },
+            { "userDetails.phoneNumber": { $regex: searchRegex } },
+          ],
+        },
+      },
+      {
+        $facet: {
+          results: [
+            {
+              $project: {
+                _id: 1,
+                ownerFirstName: "$userDetails.firstName",
+                ownerLastName: "$userDetails.lastName",
+                ownerFullName: {
+                  $concat: [
+                    "$userDetails.firstName",
+                    " ",
+                    "$userDetails.lastName",
+                  ],
+                },
+                ownerProfilePicture: {
+                  $cond: {
+                    if: { $eq: ["$userDetails.profilePicture", null] },
+                    then: "",
+                    else: "$userDetails.profilePicture",
+                  },
+                },
+                "metaData.businessName": 1,
+                "metaData.businessEmail": 1,
+                "metaData.businessName": 1,
+                "metaData.businessLogo": 1,
+                "metaData.category": 1,
+                "metaData.yearFounded": 1,
+                "metaData.street": 1,
+                "metaData.address": 1,
+                "metaData.city": 1,
+                isDeleted: 1,
+                "metaData.businessLogo": {
+                  $cond: {
+                    if: { $eq: ["metaData.businessLogo", null] },
+                    then: "",
+                    else: "metaData.businessLogo",
+                  },
+                },
+              },
+            },
+          ],
+          totalCount: [
+            {
+              $count: "count",
+            },
+          ],
+        },
+      },
+      {
+        $unwind: { path: "$totalCount", preserveNullAndEmptyArrays: true },
+      },
+      {
+        $addFields: {
+          totalCount: { $ifNull: ["$totalCount.count", 0] },
+        },
+      },
+    ];
+
+    const result = await Business.aggregate(pipeline);
+    return result;
+  } catch (error) {
+    console.log(error);
+    throw new Error("unable to filter businesses");
+  }
+};
