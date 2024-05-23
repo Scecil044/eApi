@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { paginate } from "./plugins/paginatePlugin.js";
+// import { paginate } from "./plugins/paginatePlugin.js";
 
 const LoggerSchema = new mongoose.Schema(
   {
@@ -13,6 +13,6 @@ const LoggerSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-LoggerSchema.plugin(paginate);
+// LoggerSchema.plugin(paginate);
 const Logger = mongoose.model("Logger", LoggerSchema);
 export default Logger;

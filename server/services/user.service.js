@@ -303,23 +303,23 @@ export const getTradersCount = async () => {
         },
       },
     },
-    // {
-    //   $project: {
-    //     firstName: 1,
-    //     lastName: 1,
-    //     email: 1,
-    //     phoneNumber: 1,
-    //     profilePicture: {
-    //       $cond: {
-    //         if: { $gte: ["$profilePicture", null] },
-    //         then: "$profilePicture",
-    //         else: "",
-    //       },
-    //     },
-    //     businessName: "$businessDetails.businessName",
-    //     businessEmail: "$businessDetails.businessEmail",
-    //   },
-    // },
+    {
+      $project: {
+        firstName: 1,
+        lastName: 1,
+        email: 1,
+        phoneNumber: 1,
+        profilePicture: {
+          $cond: {
+            if: { $gte: ["$profilePicture", null] },
+            then: "$profilePicture",
+            else: "",
+          },
+        },
+        businessName: "$businessDetails.businessName",
+        businessEmail: "$businessDetails.businessEmail",
+      },
+    },
   ];
 
   const tradersCount = await User.aggregate(pipeline);

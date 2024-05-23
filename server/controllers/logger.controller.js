@@ -29,7 +29,8 @@ export const listSystemLogs = async (req, res, next) => {
 
 export const searchForLog = async (req, res, next) => {
   try {
-    res.status(200).json("hello");
+    const result = await filterSystemLogs(req.query);
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }

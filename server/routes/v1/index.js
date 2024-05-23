@@ -7,9 +7,8 @@ import cartRoutes from "./cart.routes.js";
 import chatRoutes from "./chat.routes.js";
 import messageRoutes from "./message.routes.js";
 import paymentRoutes from "./payment.routes.js";
-import logRoutes from "./logger.routes.js";
+import logRoutes from "./log.routes.js";
 import { auth } from "../../utils/auth.js";
-import { countBusinesses } from "../../controllers/business.controller.js";
 
 const router = new Router();
 
@@ -21,6 +20,6 @@ router.use("/cart", auth, cartRoutes); // check if auth works on this route as i
 router.use("/chat", auth, chatRoutes);
 router.use("/message", auth, messageRoutes);
 router.use("/payments", paymentRoutes);
-router.use("/logs", auth, logRoutes);
+router.use("/system/logs", logRoutes);
 
 export default router;
