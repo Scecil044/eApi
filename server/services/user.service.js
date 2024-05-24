@@ -1,8 +1,7 @@
-import { error } from "console";
 import User from "../models/User.model.js";
 import moment from "moment";
-import { findRoleByName, findRoleByRoleId } from "./role.service.js";
-import { isRegExp } from "util/types";
+import { findRoleByName } from "./role.service.js";
+
 
 export const findUserByEmail = async (email) => {
   try {
@@ -75,13 +74,24 @@ export const getUsersExceptAuthenticatedUser = async (reqUser) => {
     throw new Error("Could not list users");
   }
 };
-export const getAllSystemUsers = async () => {
+export const getAllSystemUsers = async (reqQuery) => {
   try {
+    const page = reqQuery.page ? parseInt(reqQuery.page) : 1;
+    const limit = reqQuery.limit ? parseInt(reqQuery.limit) : 20;
+    const sortOrder = reqQuery.sortOrder ? parseInt(reqQuery.sortOrder) : -1;
+    const sortBy = reqQuery.sortBy || "createdAt";
+
     const filter = {
       isDeleted: false,
     };
-    const options = {};
-    const systemUsers = await User.find(
+    const options = {
+      limit,
+      skip: page,
+      sort: {
+        [sortBy]: sortOrder,
+      },
+    };
+    const systemUsers = await User.paginate(
       filter,
       "firstName lastName email phoneNumber businessId isDeleted isActive isBlackListed role metaData",
       options
@@ -89,6 +99,7 @@ export const getAllSystemUsers = async () => {
 
     return systemUsers;
   } catch (error) {
+    console.log(error);
     throw new Error("Could not list all system users");
   }
 };

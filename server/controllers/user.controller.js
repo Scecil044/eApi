@@ -4,6 +4,7 @@ import {
   discardUser,
   filterUsers,
   findUserById,
+  getAllSystemUsers,
   getTradersCount,
   getUsersExceptAuthenticatedUser,
   registrationsWithinTheLastSixMonths,
@@ -149,7 +150,14 @@ export const getTotalNumberOfTraders = async (req, res, next) => {
     next(error);
   }
 };
-
+export const getSystemUsers = async (req, res, next) => {
+  try {
+    const result = await getAllSystemUsers(req.query);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 /*
  * Aggregation pipelines
  * This function returns the total number of registrations within the last 6 months

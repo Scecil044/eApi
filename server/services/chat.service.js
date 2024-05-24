@@ -136,6 +136,13 @@ export const listAllChats = async () => {
             as: "messageDetails",
           },
         },
+        {
+          $project: {
+            senderId: 1,
+            text: "$messageDetails.text",
+            createdAt: 1,
+          },
+        },
       ];
       chats = await Chat.aggregate(pipeline)
         .populate("userId")

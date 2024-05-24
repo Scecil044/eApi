@@ -2,6 +2,7 @@ import express from "express";
 import {
   deleteUser,
   filterSystemUsers,
+  getSystemUsers,
   getTotalNumberOfTraders,
   getUser,
   getUsers,
@@ -14,6 +15,7 @@ import { auth } from "../../utils/auth.js";
 const router = express.Router();
 
 router.get("/", auth, getUsers);
+router.get("/system/users", auth, getSystemUsers);
 router.get("/search", auth, filterSystemUsers);
 router.put("/:id", auth, updateUser);
 router.get("/:id", auth, getUser);
