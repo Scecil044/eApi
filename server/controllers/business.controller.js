@@ -53,6 +53,7 @@ export const countBusinesses = async (req, res, next) => {
 
 export const filterBusinesses = async (req, res, next) => {
   try {
+    console.log("query string", req.query);
     const result = await genericBusinessFilter(req.query);
 
     res.status(200).json(result);

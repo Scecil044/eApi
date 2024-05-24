@@ -256,6 +256,106 @@ export const filterProductsByBusiness = async (reqBody) => {
   }
 };
 
+export const genericProductsFilter = async (reqQuery) => {
+  try {
+    const searchRegex = reqQuery.searchTerm
+      ? new RegExp(reqQuery.searchTerm, "i")
+      : null;
+    const pipeline = [
+      {
+        $lookup: {
+          from: "businesses",
+          foreignField: "businessId",
+          localField: "_id",
+          as: "businessDetails",
+        },
+      },
+      {
+        $unwind: "$businessDetails",
+      },
+      {
+        $match: {
+          isDeleted: false,
+          ...(searchRegex && {
+            $or: [
+              { title: { $regex: searchRegex } },
+              { shortDescription: { $regex: searchRegex } },
+              { longDescription: { $regex: searchRegex } },
+              { color: { $regex: searchRegex } },
+              { category: { $regex: searchRegex } },
+              {
+                "businessDetails.metaData.businessName": {
+                  $regex: searchRegex,
+                },
+              },
+              {
+                "businessDetails.metaData.businessEmail": {
+                  $regex: searchRegex,
+                },
+              },
+              { "businessDetails.metaData.city": { $regex: searchRegex } },
+              { "businessDetails.metaData.address": { $regex: searchRegex } },
+              { "businessDetails.metaData.street": { $regex: searchRegex } },
+              { "businessDetails.metaData.category": { $regex: searchRegex } },
+            ],
+          }),
+        },
+      },
+      {
+        $facet: {
+          results: [
+            {
+              $project: {
+                title: 1,
+                shortDescription: 1,
+                longDescription: 1,
+                category: 1,
+                price: 1,
+                quantity: 1,
+                size: 1,
+                color: 1,
+                businessName: "$businessDetails.meataData.businessName",
+                businessEmail: "$businessDetails.meataData.businessEmail",
+                businessLocation: {
+                  $concat: [
+                    "$businessDetails.meataData.city",
+                    " ",
+                    "$businessDetails.meataData.address",
+                    " ",
+                    "$businessDetails.meataData.street",
+                  ],
+                },
+                businessLogo: {
+                  $cont: {
+                    if: {
+                      $eq: ["$businessDetails.meataData.businessLogo", null],
+                    },
+                    then: "",
+                    else: "$businessDetails.meataData.businessLogo",
+                  },
+                },
+              },
+            },
+          ],
+          totalCount: [{ $count: "count" }],
+        },
+      },
+      {
+        $unwind: { path: "$totalCount", preserveNullAndEmptyArrays: true },
+      },
+      {
+        $addFields: {
+          totalCount: { $ifNull: ["$totalCount.count", 0] },
+        },
+      },
+    ];
+    const result = await Product.aggregate(pipeline);
+    return result;
+  } catch (error) {
+    console.log(error);
+    throw new Error(error);
+  }
+};
 // ==================================================================================
 //                                 Aggregations
 // ==================================================================================

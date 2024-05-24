@@ -113,19 +113,22 @@ export const getAllBusinessesCount = async () => {
 
 export const genericBusinessFilter = async (reqQuery) => {
   try {
+    console.log("value of reqquery", reqQuery);
+
     const searchRegex = reqQuery.searchTerm
       ? new RegExp(reqQuery.searchTerm, "i")
-      : "";
+      : null;
     const page = reqQuery.page ? parseInt(reqQuery.page) : 0;
     const limit = reqQuery.limit ? parseInt(reqQuery.limit) : 10;
     const sortOrder = reqQuery.sortOrder ? parseInt(reqQuery.sortOrder) : -1;
     const sortBy = reqQuery.sortBy || "createdAt";
+
     const pipeline = [
       {
         $lookup: {
           from: "users",
-          foreignField: "userId",
-          localField: "_id",
+          foreignField: "_id",
+          localField: "userId",
           as: "userDetails",
         },
       },
@@ -135,17 +138,19 @@ export const genericBusinessFilter = async (reqQuery) => {
       {
         $match: {
           isDeleted: false,
-          $or: [
-            { "metaData.businessName": { $regex: searchRegex } },
-            { "metaData.businessEmail": { $regex: searchRegex } },
-            { "metaData.address": { $regex: searchRegex } },
-            { "metaData.city": { $regex: searchRegex } },
-            { "metaData.street": { $regex: searchRegex } },
-            { "userDetails.firstName": { $regex: searchRegex } },
-            { "userDetails.lastName": { $regex: searchRegex } },
-            { "userDetails.email": { $regex: searchRegex } },
-            { "userDetails.phoneNumber": { $regex: searchRegex } },
-          ],
+          ...(searchRegex && {
+            $or: [
+              { "metaData.businessName": { $regex: searchRegex } },
+              { "metaData.businessEmail": { $regex: searchRegex } },
+              { "metaData.address": { $regex: searchRegex } },
+              { "metaData.city": { $regex: searchRegex } },
+              { "metaData.street": { $regex: searchRegex } },
+              { "userDetails.firstName": { $regex: searchRegex } },
+              { "userDetails.lastName": { $regex: searchRegex } },
+              { "userDetails.email": { $regex: searchRegex } },
+              { "userDetails.phoneNumber": { $regex: searchRegex } },
+            ],
+          }),
         },
       },
       {
@@ -172,7 +177,6 @@ export const genericBusinessFilter = async (reqQuery) => {
                 },
                 "metaData.businessName": 1,
                 "metaData.businessEmail": 1,
-                "metaData.businessName": 1,
                 "metaData.businessLogo": 1,
                 "metaData.category": 1,
                 "metaData.yearFounded": 1,
@@ -182,9 +186,9 @@ export const genericBusinessFilter = async (reqQuery) => {
                 isDeleted: 1,
                 "metaData.businessLogo": {
                   $cond: {
-                    if: { $eq: ["metaData.businessLogo", null] },
+                    if: { $eq: ["$metaData.businessLogo", null] },
                     then: "",
-                    else: "metaData.businessLogo",
+                    else: "$metaData.businessLogo",
                   },
                 },
               },
@@ -205,12 +209,21 @@ export const genericBusinessFilter = async (reqQuery) => {
           totalCount: { $ifNull: ["$totalCount.count", 0] },
         },
       },
+      {
+        $sort: { [sortBy]: sortOrder },
+      },
+      {
+        $skip: page * limit,
+      },
+      {
+        $limit: limit,
+      },
     ];
 
     const result = await Business.aggregate(pipeline);
     return result;
   } catch (error) {
     console.log(error);
-    throw new Error("unable to filter businesses");
+    throw new Error("Unable to filter businesses");
   }
 };
