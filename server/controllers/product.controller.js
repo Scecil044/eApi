@@ -8,6 +8,7 @@ import {
   getTotalProductsCount,
   listAllProducts,
   updateProductDetails,
+  updateProductRating,
 } from "../services/product.service.js";
 import { errorHandler } from "../utils/error.js";
 import { logger } from "../utils/winstonLogger.js";
@@ -82,6 +83,15 @@ export const listProductsByBusiness = async (req, res, next) => {
   try {
     const products = await getAllProductsByBusinessId(req.params.id);
     res.status(200).json(products);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const rateProduct = async (req, res, next) => {
+  try {
+    const result = await updateProductRating(req.params.id, req.body);
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }

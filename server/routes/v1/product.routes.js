@@ -6,6 +6,7 @@ import {
   getProduct,
   getProducts,
   listProductsByBusiness,
+  rateProduct,
   searchProductsFilteredByBusinessId,
   updateProduct,
 } from "../../controllers/product.controller.js";
@@ -17,6 +18,7 @@ router.get("/", getProducts);
 router.get("/:id", getProduct);
 router.post("/", createProduct);
 router.put("/:id", auth, updateProduct);
+router.put("/rate/:id", rateProduct);
 router.delete("/:id", auth, deleteProduct);
 router.get("/by/business/:id", listProductsByBusiness);
 router.get("/search/:id", searchProductsFilteredByBusinessId);

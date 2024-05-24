@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 const ProductSchema = new mongoose.Schema(
   {
     businessId: { type: mongoose.Types.ObjectId, ref: "Business" },
+    ratingId: { type: mongoose.Types.ObjectId, ref: "Rating" },
+    commentId: { type: mongoose.Types.ObjectId, ref: "Comment" },
     title: { type: String, required: true },
     quantity: { type: Number, required: true, default: 1 },
     price: { type: String, required: true },
@@ -14,7 +16,6 @@ const ProductSchema = new mongoose.Schema(
       enum: ["soldOut", "available"],
     },
     images: { type: Array },
-    reviews: { type: Array },
     isDeleted: { type: Boolean, default: false },
     isFlashSale: { type: Boolean, default: false },
     createdBy: { type: mongoose.Types.ObjectId, ref: "User" },

@@ -1,5 +1,6 @@
 import Product from "../models/Product.model.js";
 import { getBusinessById } from "./business.service.js";
+import { createNewProductrating } from "./rating.service.js";
 import { findUserById } from "./user.service.js";
 
 export const createNewProduct = async (reqBody) => {
@@ -27,7 +28,10 @@ export const createNewProduct = async (reqBody) => {
 
 export const findProductById = async (productId) => {
   try {
-    const product = await Product.findById(productId);
+    const product = await Product.findById(productId)
+      .populate("businessId")
+      .populate("ratingId")
+      .populate("commentId");
     if (!product) throw new Error("Failed to find product by id");
     return product;
   } catch (error) {
@@ -36,6 +40,7 @@ export const findProductById = async (productId) => {
     );
   }
 };
+
 export const updateProductDetails = async (productId, reqBody) => {
   try {
     const product = await findProductById(productId);
@@ -168,6 +173,20 @@ export const getAllProductsByBusinessId = async (businessId, reqBody) => {
     );
   }
 };
+
+export const updateProductRating = async (productId, reqBody) => {
+  try {
+    const product = await findProductById(productId);
+    const rating = await createNewProductrating(reqBody);
+    product.ratingId = rating._id;
+    await product.save();
+    return product;
+  } catch (error) {
+    console.log(error);
+    throw new Error(error);
+  }
+};
+
 /*
  * Use this function to filter through businesses listed by id
  */
