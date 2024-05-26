@@ -8,6 +8,7 @@ import {
   deleteChat,
   deleteMessage,
   getChat,
+  getUserChats,
   removeMember,
   sendResponseMessage,
 } from "../../controllers/chat.controller.js";
@@ -19,6 +20,7 @@ router.post("/", createChat);
 router.delete("/delete/chat/:id", deleteChat);
 router.put("/reply/:id", sendResponseMessage);
 router.get("/:id", getChat);
+router.get("/user/chats", auth, getUserChats);
 router.get("/members/:id", listChatMembers);
 router.put("/archive/:id", archiveChat);
 router.put("/rename/:chatId", changeGroupName);

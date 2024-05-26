@@ -66,17 +66,16 @@ export const createNewProduct = async (reqBody, req) => {
 
 export const updateProductDetails = async (productId, reqBody) => {
   try {
+    console.log("product id", productId);
     const product = await findProductById(productId);
-    const updates = reqBody;
+    const updates = Object.keys(reqBody);
     updates.forEach((update) => {
       product[update] = reqBody[update];
     });
     await product.save();
     return product;
   } catch (error) {
-    throw new Error(
-      "An error was encountered when attempting to update  product"
-    );
+    throw new Error(error);
   }
 };
 
@@ -197,6 +196,7 @@ export const listAllProducts = async (reqQuery) => {
         { title: { $regex: searchRegex } },
         { shortDescription: { $regex: searchRegex } },
         { longDescription: { $regex: searchRegex } },
+        { color: { $regex: searchRegex } },
         { "businessDetails.metaData.businessName": { $regex: searchRegex } },
         { "businessDetails.metaData.businessEmail": { $regex: searchRegex } },
         { "businessDetails.metaData.address": { $regex: searchRegex } },

@@ -6,6 +6,7 @@ import {
   discardMessage,
   getChatById,
   getChatMembers,
+  getChatsByUserId,
   listAllChats,
   modifyChatName,
   removeMemberFromChat,
@@ -222,6 +223,25 @@ export const changeGroupName = async (req, res, next) => {
   } catch (error) {
     const logString = logger.info(
       `${req.user.userName} unable to access the update chat name route for chat id: ${req.params.chatId}`
+    ).transports[0].logString;
+    await createLog(req.user.id, logString);
+    next(error);
+  }
+};
+
+export const getUserChats = async (req, res, next) => {
+  try {
+    const chats = await getChatsByUserId(req.user.id);
+    const logString = logger.info(
+      `${req.user.userName} accessed get user chats route for user id ${req.user.id}`
+    ).transports[0].logString;
+    await createLog(req.user.id, logString);
+    if (!chats || chats.length < 1)
+      return next(errorHandler(400, "You have no chats available for listing"));
+    res.status(200).json(chats);
+  } catch (error) {
+    const logString = logger.info(
+      `${req.user.userName} unable to access user chats`
     ).transports[0].logString;
     await createLog(req.user.id, logString);
     next(error);

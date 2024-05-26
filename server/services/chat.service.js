@@ -49,6 +49,21 @@ export const findChatById = async (chatId) => {
   }
 };
 
+export const getChatsByUserId = async (authenticatedUserId) => {
+  try {
+    const chats = await Chat.find({
+      isDeleted: false,
+      $or: [{ userId: authenticatedUserId }, { members: authenticatedUserId }],
+    })
+      .populate("userId", "-password")
+      .populate("members", "-password");
+    return chats;
+  } catch (error) {
+    console.log(error);
+    throw new Error(error);
+  }
+};
+
 export const reply = async (chatId, reqBody, userId) => {
   try {
     const { text } = reqBody;

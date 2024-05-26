@@ -49,7 +49,7 @@ export const getSystemLogsByUserId = async (userId) => {
 
 export const filterSystemLogs = async (reqQuery) => {
   try {
-    const limit = reqQuery.limit ? parseInt(reqQuery.limit) : 2;
+    const limit = reqQuery.limit ? parseInt(reqQuery.limit) : 200;
     const page = reqQuery.page ? parseInt(reqQuery.page) : 0;
     const sortOrder = reqQuery.sortBy ? parseInt(reqQuery.sortBy) : -1;
     const sortBy = reqQuery.sortBy || "dateCreated";

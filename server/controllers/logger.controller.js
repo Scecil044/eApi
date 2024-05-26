@@ -30,8 +30,16 @@ export const listSystemLogs = async (req, res, next) => {
 export const searchForLog = async (req, res, next) => {
   try {
     const result = await filterSystemLogs(req.query);
+    const logString = logger.info(
+      `${req.user.userName} accessed system logs route`
+    ).transports[0].logString;
+    await createLog(req.user.id, logString);
     res.status(200).json(result);
   } catch (error) {
+    const logString = logger.info(
+      `${req.user.userName} unable to access system logs`
+    ).transports[0].logString;
+    await createLog(req.user.id, logString);
     next(error);
   }
 };

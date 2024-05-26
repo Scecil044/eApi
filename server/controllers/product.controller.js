@@ -34,10 +34,18 @@ export const createProduct = async (req, res, next) => {
 
 export const updateProduct = async (req, res, next) => {
   try {
-    const product = await updateProductDetails(req.params.id);
+    const product = await updateProductDetails(req.params.id, req.body);
+    const logString = logger.info(
+      `${req.user.userName} accessed the update product route`
+    ).transports[0].logString;
+    await createLog(req.user.id, logString);
     if (!product) return next(errorHandler(400, "could not update product!!"));
     res.status(200).json(product);
   } catch (error) {
+    const logString = logger.info(
+      `${req.user.userName} unable to access the update product route`
+    ).transports[0].logString;
+    await createLog(req.user.id, logString);
     next(error);
   }
 };
