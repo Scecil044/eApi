@@ -91,43 +91,135 @@ export const deleteItem = async (productId) => {
   }
 };
 
+// export const listAllProducts = async (reqQuery) => {
+//   try {
+//     const searchTerm = reqQuery.searchTerm ? reqQuery.searchTerm : {};
+//     const searchRegex = new RegExp(searchTerm, "i");
+//     const page = reqQuery.page ? parseInt(reqQuery.page) : 0;
+//     const limit = reqQuery.limit ? parseInt(reqQuery.limit) : 30;
+//     const sortBy = reqQuery.sortBy || "createdAt";
+//     const sortOrder = reqQuery.sortOrder ? parseInt(reqQuery.sortOrder) : -1;
+//     const pipeline = [
+//       {
+//         $lookup: {
+//           from: "businesses",
+//           localField: "businessId",
+//           foreignField: "_id",
+//           pipeline: [{ $match: { isDeleted: false } }],
+//           as: "businessDetails",
+//         },
+//       },
+//       {
+//         $unwind: "$businessDetails",
+//       },
+//       {
+//         $match: {
+//           isDeleted: false,
+//           $or: [
+//             { title: { $regex: searchRegex } },
+//             { shortDescription: { $regex: searchRegex } },
+//             { longDescription: { $regex: searchRegex } },
+//             {
+//               "businessDetails.metaData.businessName": { $regex: searchRegex },
+//             },
+//             {
+//               "businessDetails.metaData.businessEmail": { $regex: searchRegex },
+//             },
+//             {
+//               "businessDetails.metaData.address": { $regex: searchRegex },
+//             },
+//             {
+//               "businessDetails.metaData.city": { $regex: searchRegex },
+//             },
+//           ],
+//         },
+//       },
+//       {
+//         $facet: {
+//           products: [
+//             { $limit: limit },
+//             { $skip: page },
+//             {
+//               $sort: {
+//                 [sortBy]: sortOrder,
+//               },
+//             },
+//             {
+//               $project: {
+//                 title: 1,
+//                 shortDescription: 1,
+//                 longDescription: 1,
+//                 quantity: 1,
+//                 price: 1,
+//                 color: 1,
+//                 businessDetails: 1,
+//               },
+//             },
+//           ],
+//           totalCount: [{ $count: "count" }],
+//         },
+//       },
+//       {
+//         $unwind: {
+//           path: "$totalCount",
+//           preserveNullAndEmptyArrays: true,
+//         },
+//       },
+//       {
+//         $addFields: {
+//           totalCount: { $ifNull: ["$totalCount.count", 0] },
+//         },
+//       },
+//     ];
+//     const products = await Product.aggregate(pipeline);
+//     if (!products || products.length < 1) {
+//       return [];
+//     } else {
+//       return products;
+//     }
+//   } catch (error) {
+//     throw new Error("Could not get the list of all products", error);
+//   }
+// };
+
 export const listAllProducts = async (reqQuery) => {
   try {
-    const searchTerm = reqQuery.searchTerm ? reqQuery.searchTerm : {};
+    const searchTerm = reqQuery.searchTerm ? reqQuery.searchTerm : "";
     const searchRegex = new RegExp(searchTerm, "i");
-    const pipeline = [
-      {
-        $match: {
-          isDeleted: false,
-          $or: [
-            { title: { $regex: searchRegex } },
-            { shortDescription: { $regex: searchRegex } },
-            { longDescription: { $regex: searchRegex } },
-          ],
-        },
+    const page = reqQuery.page ? parseInt(reqQuery.page) : 1;
+    const limit = reqQuery.limit ? parseInt(reqQuery.limit) : 30;
+    const sortBy = reqQuery.sortBy || "createdAt";
+    const sortOrder = reqQuery.sortOrder ? parseInt(reqQuery.sortOrder) : -1;
+
+    const query = {
+      isDeleted: false,
+      $or: [
+        { title: { $regex: searchRegex } },
+        { shortDescription: { $regex: searchRegex } },
+        { longDescription: { $regex: searchRegex } },
+        { "businessDetails.metaData.businessName": { $regex: searchRegex } },
+        { "businessDetails.metaData.businessEmail": { $regex: searchRegex } },
+        { "businessDetails.metaData.address": { $regex: searchRegex } },
+        { "businessDetails.metaData.city": { $regex: searchRegex } },
+      ],
+    };
+
+    const options = {
+      page,
+      limit,
+      sort: { [sortBy]: sortOrder },
+      populate: {
+        path: "businessId",
+        match: { isDeleted: false },
+        select: "metaData",
       },
-      {
-        $lookup: {
-          from: "businesses",
-          localField: "businessId",
-          foreignField: "_id",
-          as: "businessDetails",
-        },
-      },
-      {
-        $unwind: "$businessDetails",
-      },
-      {
-        $group: {
-          _id: null,
-          totalCount: {
-            $sum: 1,
-          },
-        },
-      },
-    ];
-    const products = await Product.aggregate(pipeline);
-    if (!products || products.length < 1) {
+      select:
+        "title shortDescription longDescription quantity price color businessId images size status category isFlashSale createdAt",
+    };
+
+    const products = await Product.paginate(query, options);
+
+    if (!products || products.docs.length < 1) {
       return [];
     } else {
       return products;

@@ -66,9 +66,20 @@ export const deleteProduct = async (req, res, next) => {
 export const getProducts = async (req, res, next) => {
   try {
     const products = await listAllProducts(req.query);
-    // if (!products) return next(errorHandler(400, "could not fetch products"));
+    if (req.user) {
+      const logString = logger.info(
+        `${req.user.userName} accessed the get products route`
+      ).transports[0].logString;
+      await createLog(req.user.id, logString);
+    }
     res.status(200).json(products);
   } catch (error) {
+    if (req.user) {
+      const logString = logger.info(
+        `${req.user.userName} unable to access the get products route`
+      ).transports[0].logString;
+      await createLog(req.user.id, logString);
+    }
     next(error);
   }
 };
