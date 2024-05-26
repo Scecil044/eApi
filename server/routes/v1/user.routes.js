@@ -19,7 +19,7 @@ router.get("/system/users", auth, getSystemUsers);
 router.get("/search", auth, filterSystemUsers);
 router.put("/:id", auth, updateUser);
 router.get("/:id", auth, getUser);
-router.delete("/:id", deleteUser);
+router.delete("/:id", auth, deleteUser);
 router.put("/suspend/:id", auth, suspendUser);
 // Aggregations
 router.get("/recent/registrations", auth, recentRegistrations);

@@ -1,30 +1,10 @@
 import Product from "../models/Product.model.js";
+import User from "../models/User.model.js";
+import { errorHandler } from "../utils/error.js";
 import { getBusinessById } from "./business.service.js";
 import { createNewProductrating } from "./rating.service.js";
+import { findRoleByRoleId } from "./role.service.js";
 import { findUserById } from "./user.service.js";
-
-export const createNewProduct = async (reqBody) => {
-  try {
-    const { title, quantity, category, price, color, size, images } = reqBody;
-    const user = await findUserById(req.user.id);
-    const newProduct = await Product.create({
-      title,
-      quantity,
-      price,
-      category,
-      color,
-      size,
-      images,
-      createdBy: req.user.id,
-      businessId: user.businessId,
-    });
-    return newProduct;
-  } catch (error) {
-    throw new Error(
-      "An error was encountered when attempting to create new product"
-    );
-  }
-};
 
 export const findProductById = async (productId) => {
   try {
@@ -38,6 +18,49 @@ export const findProductById = async (productId) => {
     throw new Error(
       "An error was encountered when attempting to get  product by id"
     );
+  }
+};
+
+export const createNewProduct = async (reqBody, req) => {
+  try {
+    const {
+      title,
+      quantity,
+      category,
+      price,
+      color,
+      size,
+      images,
+      shortDescription,
+      longDescription,
+      isFlashSale,
+    } = reqBody;
+    console.log(reqBody);
+    if (!title || !quantity || !price || !category || !shortDescription)
+      throw new Error("please provide the required fields");
+    const user = await User.findById(req.user.id);
+    const role = await findRoleByRoleId(user.role);
+    if (role.roleName !== "trader")
+      throw new Error("You do are not registred as a trader in the system");
+    console.log("business id on this", user);
+    const newProduct = await Product.create({
+      title,
+      quantity,
+      price,
+      category,
+      color,
+      size,
+      images,
+      createdBy: req.user.id,
+      businessId: user.businessId,
+      shortDescription,
+      longDescription,
+      isFlashSale,
+    });
+    const createdProduct = await findProductById(newProduct._id);
+    return createdProduct;
+  } catch (error) {
+    throw new Error(error);
   }
 };
 

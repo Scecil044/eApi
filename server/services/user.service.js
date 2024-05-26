@@ -2,7 +2,6 @@ import User from "../models/User.model.js";
 import moment from "moment";
 import { findRoleByName } from "./role.service.js";
 
-
 export const findUserByEmail = async (email) => {
   try {
     const isUser = await User.findOne({ email }).populate("role", "roleName");
@@ -15,7 +14,9 @@ export const findUserByEmail = async (email) => {
 // function implementation works well
 export const findUserById = async (userId) => {
   try {
-    const isUser = await User.findById(userId).populate("role", "roleName");
+    const isUser = await User.findById(userId)
+      .populate("role", "roleName")
+      .populate("businessId");
 
     // return isUser ? { ...isUser.toObject(), role: isUser.role.roleName } : null;
     return isUser;
@@ -24,8 +25,10 @@ export const findUserById = async (userId) => {
     throw new Error("could not find user by id", error);
   }
 };
+
 export const discardUser = async (userId) => {
   try {
+    console.log("user id to delete===================", userId);
     const isUser = await findUserById(userId);
     if (!isUser) throw new Error("User not found in db!!");
     isUser.isDeleted = true;
@@ -52,6 +55,7 @@ export const deactivateUserAccount = async (userId) => {
     throw new Error("Failed to deactivate user account", error);
   }
 };
+
 export const getUsersExceptAuthenticatedUser = async (reqUser) => {
   try {
     const systemUsers = await User.find({
@@ -59,14 +63,8 @@ export const getUsersExceptAuthenticatedUser = async (reqUser) => {
       isDeleted: false,
     })
       .select("-password")
-      .populate("role", "roleName");
-    // Extracting roles from users
-    // const usersWithRoles = systemUsers.map((user) => {
-    //   return {
-    //     ...user.toObject(),
-    //     role: user.role ? user.role.roleName : null,
-    //   };
-    // });
+      .populate("role", "roleName")
+      .populate("businessId");
 
     return systemUsers;
   } catch (error) {
@@ -74,6 +72,7 @@ export const getUsersExceptAuthenticatedUser = async (reqUser) => {
     throw new Error("Could not list users");
   }
 };
+
 export const getAllSystemUsers = async (reqQuery) => {
   try {
     const page = reqQuery.page ? parseInt(reqQuery.page) : 1;
@@ -84,18 +83,21 @@ export const getAllSystemUsers = async (reqQuery) => {
     const filter = {
       isDeleted: false,
     };
+
     const options = {
+      page, // mongoose-paginate-v2 expects a 1-based page number
       limit,
-      skip: page,
       sort: {
         [sortBy]: sortOrder,
       },
+      populate: {
+        path: "businessId",
+        select:
+          "metaData.businessName metaData.businessEmail metaData.businessNumber metaData.address metaData.city metaData.street metaData.yearFounded metaData.businessLogo metaData.category",
+      },
     };
-    const systemUsers = await User.paginate(
-      filter,
-      "firstName lastName email phoneNumber businessId isDeleted isActive isBlackListed role metaData",
-      options
-    );
+
+    const systemUsers = await User.paginate(filter, options);
 
     return systemUsers;
   } catch (error) {
@@ -108,8 +110,9 @@ export const updateUserDetails = async (userId, reqBody) => {
   try {
     const userDoc = await findUserById(userId);
     if (!userDoc) throw new Error("user not found");
-    const roleId = await findRoleByName(reqBody.role);
-    reqBody.role = roleId;
+    const role = await findRoleByName(reqBody.role);
+    reqBody.role = role._id;
+    console.log("request body", reqBody);
 
     const updates = Object.keys(reqBody);
     console.log(updates);
@@ -117,8 +120,9 @@ export const updateUserDetails = async (userId, reqBody) => {
       userDoc[update] = reqBody[update];
     });
     await userDoc.save();
-    userDoc.password = undefined;
-    return userDoc;
+    const updatedUser = await findUserById(userId);
+    updatedUser.password = undefined;
+    return updatedUser;
   } catch (error) {
     console.log(error);
     throw new Error("Failed to update details! ", error);
@@ -224,6 +228,7 @@ export const getAllInactiveUsersCount = async () => {
     throw new Error("failed to get active users");
   }
 };
+
 export const getAllDeletedUsersCount = async () => {
   try {
     const pipeline = [
@@ -255,14 +260,15 @@ export const getAllDeletedUsersCount = async () => {
  * Aggregation pipelines
  * This function returns the total number of registrations within the last six months
  */
-export const registrationsWithinTheLastSixMonths = async () => {
+export const registrationsWithinTheLastOneMonth = async () => {
   const currentDate = new Date();
-  const sixMonthsAgo = moment().subtract(6, "months").toDate();
+  const oneMonthAgo = moment().subtract(1, "months").toDate(); // Calculate one month ago
+
   const pipeline = [
     {
       $match: {
         createdAt: {
-          $gte: sixMonthsAgo, // Filter registrations after or on six months ago
+          $gte: oneMonthAgo, // Filter registrations after or on one month ago
           $lte: currentDate, // Filter registrations before or on current date
         },
       },
@@ -275,20 +281,28 @@ export const registrationsWithinTheLastSixMonths = async () => {
         },
       },
     },
+    {
+      $project: {
+        _id: 0, // Exclude the default _id field
+        totalRegistrations: 1, // Include the totalRegistrations field
+      },
+    },
   ];
+
   const registrations = await User.aggregate(pipeline);
-  if (registrations.length < 1) {
-    return registrations[0].totalRegistrations;
-  } else {
-    return 0;
-  }
+
+  return registrations.length > 0
+    ? registrations[0]
+    : { totalRegistrations: 0 }; // Return the first document or a default object with totalRegistrations: 0
 };
+
 /*
  * Aggregation pipelines
  * This function returns the total number of users with businesses
  */
 export const getTradersCount = async () => {
   const trader = await findRoleByName("trader");
+  console.log(trader);
   const pipeline = [
     {
       $lookup: {
@@ -315,31 +329,10 @@ export const getTradersCount = async () => {
         },
       },
     },
-    // {
-    //   $project: {
-    //     firstName: 1,
-    //     lastName: 1,
-    //     email: 1,
-    //     phoneNumber: 1,
-    //     profilePicture: {
-    //       $cond: {
-    //         if: { $gte: ["$profilePicture", null] },
-    //         then: "$profilePicture",
-    //         else: "",
-    //       },
-    //     },
-    //     businessName: "$businessDetails.businessName",
-    //     businessEmail: "$businessDetails.businessEmail",
-    //   },
-    // },
   ];
 
   const tradersCount = await User.aggregate(pipeline);
-  if (tradersCount > 0) {
-    return tradersCount[0].total;
-  } else {
-    return 0;
-  }
+  return tradersCount.length > 0 ? tradersCount[0].total : 0;
 };
 
 export const filterUsers = async (reqQuery) => {
@@ -351,6 +344,7 @@ export const filterUsers = async (reqQuery) => {
     const searchRegex = reqQuery.searchTerm
       ? new RegExp(reqQuery.searchTerm, "i")
       : null;
+
     const pipeline = [
       {
         $match: {
@@ -377,6 +371,20 @@ export const filterUsers = async (reqQuery) => {
         $limit: limit,
       },
       {
+        $lookup: {
+          from: "businesses",
+          localField: "businessId",
+          foreignField: "_id",
+          as: "business",
+        },
+      },
+      {
+        $unwind: {
+          path: "$business",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
         $facet: {
           results: [
             {
@@ -385,6 +393,18 @@ export const filterUsers = async (reqQuery) => {
                 firstName: 1,
                 lastName: 1,
                 email: 1,
+                business: {
+                  _id: 1,
+                  "metaData.businessName": 1,
+                  "metaData.businessEmail": 1,
+                  "metaData.businessNumber": 1,
+                  "metaData.address": 1,
+                  "metaData.city": 1,
+                  "metaData.street": 1,
+                  "metaData.yearFounded": 1,
+                  "metaData.businessLogo": 1,
+                  "metaData.category": 1,
+                },
               },
             },
           ],

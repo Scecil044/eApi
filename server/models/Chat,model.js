@@ -6,6 +6,7 @@ const ChatSchema = new mongoose.Schema(
     messageId: { type: mongoose.Types.ObjectId, ref: "Message" },
     members: [{ type: mongoose.Types.ObjectId, ref: "User" }],
     isGroupChat: { type: Boolean, default: false },
+    groupName: { type: String },
     isDeleted: { type: Boolean, default: false },
     isArchived: { type: Boolean, default: false },
   },

@@ -113,7 +113,7 @@ export const getAllBusinessesCount = async () => {
 
 export const genericBusinessFilter = async (reqQuery) => {
   try {
-    console.log("value of reqquery", reqQuery);
+    console.log("value of reqQuery", reqQuery);
 
     const searchRegex = reqQuery.searchTerm
       ? new RegExp(reqQuery.searchTerm, "i")

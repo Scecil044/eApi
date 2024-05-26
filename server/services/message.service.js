@@ -44,6 +44,16 @@ export const findMessageById = async (messageId) => {
   }
 };
 
+export const findMessagesByChatId = async (chatId) => {
+  try {
+    const message = await Message.find({ chatId: chatId, isDeleted: false });
+    return message;
+  } catch (error) {
+    console.log(error);
+    throw new Error("could not find message by id");
+  }
+};
+
 export const filterMessages = async (reqQuery) => {
   try {
     const searchRegex = reqQuery.searchTerm

@@ -18,6 +18,7 @@ class StringTransport extends winston.Transport {
     callback();
   }
 }
+
 export const logger = winston.createLogger({
   level: "info",
   format: winston.format.json(),

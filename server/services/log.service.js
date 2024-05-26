@@ -61,7 +61,7 @@ export const filterSystemLogs = async (reqQuery) => {
       {
         $lookup: {
           from: "users",
-          localField: "userId", // Assuming userId is the reference in Logger documents
+          localField: "userId",
           foreignField: "_id",
           as: "userDetails",
         },

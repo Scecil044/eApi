@@ -7,7 +7,7 @@ import {
   getAllSystemUsers,
   getTradersCount,
   getUsersExceptAuthenticatedUser,
-  registrationsWithinTheLastSixMonths,
+  registrationsWithinTheLastOneMonth,
   updateUserDetails,
 } from "../services/user.service.js";
 import { errorHandler } from "../utils/error.js";
@@ -79,6 +79,7 @@ export const updateUser = async (req, res, next) => {
 };
 export const deleteUser = async (req, res, next) => {
   try {
+    console.log("function to delete user running");
     await discardUser(req.params.id);
     const logString = logger.info(
       `${req.user.userName} accessed get user delete user route for id ${req.params.id}`
@@ -95,8 +96,6 @@ export const deleteUser = async (req, res, next) => {
 };
 export const suspendUser = async (req, res, next) => {
   try {
-    console.log("authenticated user", req.user);
-    console.log("userId", req.params.id);
     if (req.user.role !== "admin" && req.user.role !== "superAdmin") {
       return next(errorHandler(400, "You do not have Administrator rights!"));
     }
@@ -164,7 +163,7 @@ export const getSystemUsers = async (req, res, next) => {
  */
 export const recentRegistrations = async (req, res, next) => {
   try {
-    const recentRegistrationCount = await registrationsWithinTheLastSixMonths();
+    const recentRegistrationCount = await registrationsWithinTheLastOneMonth();
     const logString = logger.info(
       `${req.user.userName} accessed recent registrations route`
     ).transports[0].logString;

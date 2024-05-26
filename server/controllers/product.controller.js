@@ -15,7 +15,7 @@ import { logger } from "../utils/winstonLogger.js";
 
 export const createProduct = async (req, res, next) => {
   try {
-    const createdProduct = await createNewProduct(req.body);
+    const createdProduct = await createNewProduct(req.body, req);
     if (!createdProduct)
       return next(errorHandler(400, "Could not create product!"));
     const logString = logger.info(
