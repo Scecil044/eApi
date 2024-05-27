@@ -10,6 +10,7 @@ import paymentRoutes from "./payment.routes.js";
 import logRoutes from "./log.routes.js";
 import commentRoutes from "./comment.routes.js";
 import businessRoutes from "./business.routes.js";
+import orderRoutes from "./order.routes.js";
 import { auth } from "../../utils/auth.js";
 
 const router = new Router();
@@ -25,5 +26,6 @@ router.use("/payments", paymentRoutes);
 router.use("/system/logs", logRoutes);
 router.use("/business", businessRoutes);
 router.use("/comments", auth, commentRoutes);
+router.use("/orders", auth, orderRoutes);
 
 export default router;

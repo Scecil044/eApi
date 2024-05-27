@@ -8,7 +8,7 @@ import { findUserById } from "./user.service.js";
 
 export const findProductById = async (productId) => {
   try {
-    const product = await Product.findById(productId)
+    const product = await Product.findOne({ _id: productId })
       .populate("businessId")
       .populate("ratingId")
       .populate("commentId");
@@ -81,12 +81,17 @@ export const updateProductDetails = async (productId, reqBody) => {
 
 export const deleteItem = async (productId) => {
   try {
-    const product = await findProductById(productId);
-    product.isDeleted = true;
-    await product.save();
+    const product = await Product.findByIdAndUpdate(
+      productId,
+      {
+        $set: { isDeleted: true },
+      },
+      { new: true }
+    );
     return product;
   } catch (error) {
-    throw new Error("Could not delete ite, from products tab;e");
+    console.log(error);
+    throw new Error(error);
   }
 };
 

@@ -1,4 +1,5 @@
 import { config } from "../utils/config.js";
+import { errorHandler } from "../utils/error.js";
 import { findRoleByName } from "./role.service.js";
 import { getAllSystemUsers } from "./user.service.js";
 import nodemailer from "nodemailer";
@@ -52,5 +53,19 @@ export const notifyUser = async (mailOptions) => {
     });
   } catch (error) {
     throw new Error("could not notify user");
+  }
+};
+
+export const sendResetEmail = async (toEmail, subject, body) => {
+  try {
+    const message = await transporter.sendMail({
+      from: process.env.SMTP_EMAIL,
+      to: toEmail,
+      subject,
+      html: body,
+    });
+    console.log("Email sent", message.info);
+  } catch (error) {
+    throw errorHandler(400, error.message);
   }
 };

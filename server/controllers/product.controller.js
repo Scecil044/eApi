@@ -94,6 +94,8 @@ export const getProducts = async (req, res, next) => {
 
 export const getProduct = async (req, res, next) => {
   try {
+    const product = await findProductById(req.params.id);
+    res.status(200).json(product);
   } catch (error) {
     next(error);
   }

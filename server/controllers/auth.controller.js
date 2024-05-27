@@ -1,10 +1,16 @@
-import { loginUser, registerUser } from "../services/auth.service.js";
+import {
+  loginUser,
+  registerUser,
+  sendPasswordResetLink,
+} from "../services/auth.service.js";
 import { findRoleByRoleId } from "../services/role.service.js";
 import { findUserByEmail } from "../services/user.service.js";
 import { errorHandler } from "../utils/error.js";
-import { generateToken } from "../utils/generateToken.js";
+import {
+  generatePasswordToken,
+  generateToken,
+} from "../utils/generateToken.js";
 import bcrypt from "bcryptjs";
-
 
 export const login = async (req, res, next) => {
   try {
@@ -132,6 +138,16 @@ export const continueWithGoogle = async (req, res, next) => {
         .status(200)
         .json(newUser);
     }
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    const passwordToken = generatePasswordToken(req.user.email);
+    await sendPasswordResetLink(req.user.email, passwordToken);
+    res.status(204).send();
   } catch (error) {
     next(error);
   }

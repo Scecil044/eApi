@@ -9,15 +9,15 @@ export const findChatById = async (chatId) => {
     const pipeline = [
       {
         $match: {
-          _id: chatId, // Match by chatId
+          _id: chatId,
           isDeleted: false,
         },
       },
       {
         $lookup: {
-          from: "users", // Assuming "users" is the name of the collection
-          localField: "userId", // Field in the current collection
-          foreignField: "_id", // Field in the referenced collection
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
           as: "userDetails",
         },
       },
@@ -38,6 +38,20 @@ export const findChatById = async (chatId) => {
             },
           ],
           as: "messages",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          foreignField: "_id",
+          localField: "members",
+          as: "members",
+        },
+      },
+      {
+        $project: {
+          "userDetails.password": 0,
+          "members.password": 0,
         },
       },
     ];

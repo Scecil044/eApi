@@ -7,3 +7,7 @@ export const generateToken = (email, firstName, lastName, userId, roleName) => {
     process.env.JWT_SECRET
   );
 };
+
+export const generatePasswordToken = (email) => {
+  return jwt.sign({ email: email }, process.env.JWT_SECRET);
+};

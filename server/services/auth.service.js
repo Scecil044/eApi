@@ -1,7 +1,7 @@
 import User from "../models/User.model.js";
 import { errorHandler } from "../utils/error.js";
 import { createNewBusiness } from "./business.service.js";
-import { notifyUser } from "./email.service.js";
+import { notifyUser, sendResetEmail } from "./email.service.js";
 import { findRole, findRoleByRoleId } from "./role.service.js";
 
 import { findUserByEmail, findUserById } from "./user.service.js";
@@ -118,5 +118,18 @@ export const loginUser = async (email, password) => {
   } catch (error) {
     console.log(error);
     throw new Error("failed to authenticate!!");
+  }
+};
+
+export const sendPasswordResetLink = async (to, token) => {
+  try {
+    const subject = "Reset Password";
+    const client_url = process.env.CLIENT_URL;
+    const url = `${client_url}/forgor/password?q=${token}`;
+    const text = `Hello, <br></br>Looks like you have forgotten your password. if so, click the link below to reset your password
+    <a href='${url}'>Reset your password</a>  <br></br/> if you did not request this, please ignore the email`;
+    await sendResetEmail(to, subject, text);
+  } catch (error) {
+    throw errorHandler(400, error.message);
   }
 };
