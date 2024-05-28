@@ -2,6 +2,7 @@ import Order from "../models/Order.model.js";
 import Product from "../models/Product.model.js";
 import { errorHandler } from "../utils/error.js";
 import { uuid } from "uuidv4";
+import { findUserById } from "./user.service.js";
 
 export const findOrderPlacementsByUserId = async (userId, reqQuery) => {
   try {

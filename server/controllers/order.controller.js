@@ -4,7 +4,6 @@ import {
   findOrderPlacementsByUserId,
   orderPlacement,
 } from "../services/order.service.js";
-import { findUserById } from "../services/user.service.js";
 import { errorHandler } from "../utils/error.js";
 
 export const findOrderByOrderNumber = async (orderNumber) => {
