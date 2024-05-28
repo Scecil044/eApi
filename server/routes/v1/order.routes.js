@@ -1,9 +1,18 @@
 import express from "express";
-import { auth } from "../../utils/auth.js";
-import { placeOrder } from "../../controllers/order.controller.js";
+import {
+  deleteOrder,
+  findOrderByOrderNumber,
+  getOrderByUserId,
+  placeOrder,
+  removeItemFromOrder,
+} from "../../controllers/order.controller.js";
 
 const router = express.Router();
 
-router.post("/:id", placeOrder);
+router.get("/:id", getOrderByUserId);
+router.get("/id/:id", findOrderByOrderNumber);
+router.post("/", placeOrder);
+router.put("/:id", removeItemFromOrder);
+router.delete("/:id", deleteOrder);
 
 export default router;

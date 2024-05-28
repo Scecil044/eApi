@@ -56,3 +56,34 @@ class LinkedList {
     }
   }
 }
+
+// is power of two
+// powers of two must me positive numbers greater than 1
+function isPowerOfTwo(n) {
+  if (n < 1) {
+    return false;
+  }
+  while (n > 1) {
+    if (n % 2 !== 0) {
+      return false;
+    }
+    n = n / 2;
+  }
+  return true;
+}
+
+console.log(isPowerOfTwo(7));
+
+function isPrime(n) {
+  if (n < 2) {
+    return false;
+  }
+  for (let i = 2; i < n; i++) {
+    if (n % i !== 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+console.log(isPrime(7));
