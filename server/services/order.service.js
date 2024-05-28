@@ -29,8 +29,12 @@ export const findOrderPlacementsByUserId = async (userId, reqQuery) => {
     throw new Error(error);
   }
 };
-export const orderPlacement = async (products) => {
+export const orderPlacement = async (reqBody, userId) => {
   try {
+    const { products, deliveryAddress } = reqBody;
+    if (!deliveryAddress)
+      throw errorHandler(400, "please provide a defined delivery address");
+    console.log(deliveryAddress);
     let orderedProducts = [];
     const productIds = products.map((item) => item.productId);
     const dbProducts = await Product.find({ _id: { $in: productIds } });
@@ -69,9 +73,11 @@ export const orderPlacement = async (products) => {
     const grandTotal = totalAmount;
 
     const order = await Order.create({
+      userId: userId,
       orderNumber,
       items: orderedProducts,
       grandTotal,
+      address: deliveryAddress,
       status: "pending",
     });
     return order;
@@ -130,9 +136,77 @@ export const getAllSystemOrders = async () => {
       },
     ];
 
-    const result = await Order.aggregate(pipeline);
+    // const result = await Order.aggregate(pipeline);
+    const orders = await Order.find({ isDeleted: false })
+      .populate("userId", "firstName lastName gender phoneNumber email")
+      .populate("items.productId");
+    return orders;
   } catch (error) {
     console.log(error);
     throw new Error(error);
+  }
+};
+
+export const listDeliveredOrders = async () => {
+  try {
+    const pipeline = [
+      {
+        $match: {
+          isDeleted: false,
+          status: "delivered",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalCount: { $sum: 1 },
+          totalAmount: { $sum: "$grandTotal" },
+          orders: { $push: "$$ROOT" },
+        },
+      },
+      {
+        $unwind: "$orders",
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "orders.userId",
+          foreignField: "_id",
+          as: "orders.user",
+        },
+      },
+      {
+        $unwind: "$orders.user",
+      },
+      {
+        $lookup: {
+          from: "products",
+          localField: "orders.items.productId",
+          foreignField: "_id",
+          as: "orders.items.productDetails",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalCount: { $first: "$totalCount" },
+          totalAmount: { $first: "$totalAmount" },
+          orders: { $push: "$orders" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          totalCount: 1,
+          totalAmount: 1,
+          orders: 1,
+        },
+      },
+    ];
+
+    const result = await Order.aggregate(pipeline);
+    return result;
+  } catch (error) {
+    throw errorHandler(400, "could not list delivered orders");
   }
 };

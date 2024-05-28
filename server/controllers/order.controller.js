@@ -2,9 +2,21 @@ import Order from "../models/Order.model.js";
 import {
   discardOrder,
   findOrderPlacementsByUserId,
+  getAllSystemOrders,
+  listDeliveredOrders,
   orderPlacement,
 } from "../services/order.service.js";
 import { errorHandler } from "../utils/error.js";
+
+export const listSystemOrders = async (req, res, next) => {
+  try {
+    const result = await getAllSystemOrders();
+    if (!result) return next(errorHandler(400, "could not get system orders"));
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const findOrderByOrderNumber = async (orderNumber) => {
   try {
@@ -37,7 +49,7 @@ export const placeOrder = async (req, res, next) => {
     if (!Array.isArray(products)) {
       products = [products];
     }
-    const result = await orderPlacement(products);
+    const result = await orderPlacement(req.body, req.user.id);
     if (!result) return next(errorHandler(400, "could not create order"));
     res.status(200).json(result);
   } catch (error) {
@@ -56,6 +68,16 @@ export const deleteOrder = async (req, res, next) => {
   try {
     await discardOrder(req.params.id);
     res.status(200).json("order deleted");
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getDeliveredOrders = async (req, res, next) => {
+  const result = await listDeliveredOrders();
+
+  res.status(200).json(result);
+  try {
   } catch (error) {
     next(error);
   }
