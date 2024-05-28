@@ -87,3 +87,52 @@ export const discardOrder = async (orderNumber) => {
     throw errorHandler(400, "could not delete order");
   }
 };
+
+export const getAllSystemOrders = async () => {
+  try {
+    const pipeline = [
+      {
+        $match: { isDeleted: false },
+      },
+      {
+        $lookup: {
+          from: "products",
+          localField: "$items.productId",
+          foreignField: "_id",
+          as: "productDetails",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "userDetails",
+        },
+      },
+      {
+        $facet: {
+          totalCount: [{ $count: "count" }],
+          totalAmount: [
+            {
+              $group: {
+                _id: null,
+                total: { $sum: "$grandTotal" },
+              },
+            },
+          ],
+          $project: {
+            orders: "$$ROOT",
+            totalCount: { $arrayElemAt: ["$totalCount.count", 0] },
+            totalAmount: { $arrayElemAt: ["$totalAmount.total", 0] },
+          },
+        },
+      },
+    ];
+
+    const result = await Order.aggregate(pipeline);
+  } catch (error) {
+    console.log(error);
+    throw new Error(error);
+  }
+};
