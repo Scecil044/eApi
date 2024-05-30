@@ -4,10 +4,13 @@ export const generateToken = (email, firstName, lastName, userId, roleName) => {
   const generatedName = firstName + " " + lastName;
   return jwt.sign(
     { id: userId, email: email, role: roleName, userName: generatedName },
-    process.env.JWT_SECRET
+    process.env.JWT_SECRET,
+    { expiresIn: "3h" }
   );
 };
 
 export const generatePasswordToken = (email) => {
-  return jwt.sign({ email: email }, process.env.JWT_SECRET);
+  return jwt.sign({ email: email }, process.env.JWT_SECRET, {
+    expiresIn: "5m",
+  });
 };

@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.1630.0",
     "axios": "^1.7.2",
     "bcryptjs": "^2.4.3",
     "colors": "^1.4.0",
@@ -19,6 +20,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "express-rate-limit": "^7.2.0",
     "helmet": "^7.1.0",
     "http-status": "^1.7.4",
     "jsonwebtoken": "^9.0.2",
@@ -29,6 +31,7 @@
     "mongoose-paginate-v2": "^1.8.1",
     "nodemailer": "^6.9.13",
     "socket.io": "^4.7.5",
+    "throttle": "^1.0.3",
     "uuidv4": "^6.2.13",
     "validator": "^13.12.0",
     "winston": "^3.13.0"
