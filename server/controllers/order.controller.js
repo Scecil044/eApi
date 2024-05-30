@@ -3,6 +3,7 @@ import {
   discardOrder,
   findOrderPlacementsByUserId,
   getAllSystemOrders,
+  listAllPendingOrders,
   listDeliveredOrders,
   orderPlacement,
 } from "../services/order.service.js";
@@ -74,9 +75,38 @@ export const deleteOrder = async (req, res, next) => {
 };
 
 export const getDeliveredOrders = async (req, res, next) => {
-  const result = await listDeliveredOrders();
-
+  const result = await listDeliveredOrders(req.body);
+  if (!result)
+    return next(
+      errorHandler(
+        400,
+        "An error was encountered when fetching delivered products"
+      )
+    );
   res.status(200).json(result);
+  try {
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getPendingOrders = async (req, res, next) => {
+  try {
+    const data = await listAllPendingOrders(req.body);
+    if (!data)
+      return next(
+        errorHandler(
+          400,
+          "An error was encountered when listing pending orders"
+        )
+      );
+    res.status(200).json(data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getCancelledOrders = async (req, res, next) => {
   try {
   } catch (error) {
     next(error);

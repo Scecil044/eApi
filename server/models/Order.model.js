@@ -22,7 +22,7 @@ const OrderSchema = new mongoose.Schema(
     orderedQuantity: { type: Number },
     status: {
       type: String,
-      enum: ["pending", "processed", "delivered", "fulfilled"],
+      enum: ["pending", "processed", "delivered", "fulfilled", "cancelled"],
     },
     grandTotal: { type: Number, default: 0 },
     isDeleted: { type: Boolean, default: false },

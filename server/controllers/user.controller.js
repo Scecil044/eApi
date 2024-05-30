@@ -7,10 +7,12 @@ import {
   getAllSystemUsers,
   getTradersCount,
   getUsersExceptAuthenticatedUser,
+  passwordReset,
   registrationsWithinTheLastOneMonth,
   updateUserDetails,
 } from "../services/user.service.js";
 import { errorHandler } from "../utils/error.js";
+import { generatePasswordToken } from "../utils/generateToken.js";
 import { logger } from "../utils/winstonLogger.js";
 import httpStatus from "http-status";
 
@@ -153,6 +155,15 @@ export const getSystemUsers = async (req, res, next) => {
   try {
     const result = await getAllSystemUsers(req.query);
     res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+export const resetPassword = async (req, res, next) => {
+  try {
+    const data = await passwordReset(req.body, req.user);
+    console.log(data);
+    res.status(200).json("password changed");
   } catch (error) {
     next(error);
   }

@@ -7,6 +7,7 @@ import {
   getUser,
   getUsers,
   recentRegistrations,
+  resetPassword,
   suspendUser,
   updateUser,
 } from "../../controllers/user.controller.js";
@@ -21,6 +22,7 @@ router.put("/:id", auth, updateUser);
 router.get("/:id", auth, getUser);
 router.delete("/:id", auth, deleteUser);
 router.put("/suspend/:id", auth, suspendUser);
+router.put("/", auth, resetPassword);
 // Aggregations
 router.get("/recent/registrations", auth, recentRegistrations);
 router.get("/all/traders", auth, getTotalNumberOfTraders);

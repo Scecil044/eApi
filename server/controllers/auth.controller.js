@@ -145,8 +145,11 @@ export const continueWithGoogle = async (req, res, next) => {
 
 export const resetPassword = async (req, res, next) => {
   try {
-    const passwordToken = generatePasswordToken(req.user.email);
-    await sendPasswordResetLink(req.user.email, passwordToken);
+    const { email } = req.body;
+    console.log(email);
+    if (!email) return next(errorHandler(404, "please provide your email"));
+    const passwordToken = generatePasswordToken(email);
+    await sendPasswordResetLink(email, passwordToken);
     res.status(204).send();
   } catch (error) {
     next(error);

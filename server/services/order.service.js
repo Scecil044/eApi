@@ -3,6 +3,7 @@ import Product from "../models/Product.model.js";
 import { errorHandler } from "../utils/error.js";
 import { uuid } from "uuidv4";
 import { findUserById } from "./user.service.js";
+import mongoose from "mongoose";
 
 export const findOrderPlacementsByUserId = async (userId, reqQuery) => {
   try {
@@ -147,14 +148,19 @@ export const getAllSystemOrders = async () => {
   }
 };
 
-export const listDeliveredOrders = async () => {
+export const listDeliveredOrders = async (reqBody) => {
   try {
+    const { userId } = reqBody;
+    const matchStage = {
+      isDeleted: false,
+      status: "fulfilled",
+    };
+    if (userId) {
+      matchStage.userId = mongoose.Types.ObjectId(userId);
+    }
     const pipeline = [
       {
-        $match: {
-          isDeleted: false,
-          status: "delivered",
-        },
+        $match: matchStage,
       },
       {
         $group: {
@@ -207,6 +213,86 @@ export const listDeliveredOrders = async () => {
     const result = await Order.aggregate(pipeline);
     return result;
   } catch (error) {
+    console.log(error);
     throw errorHandler(400, "could not list delivered orders");
+  }
+};
+
+export const listAllPendingOrders = async (reqBody) => {
+  try {
+    const { userId } = reqBody;
+    const matchStage = {
+      isDeleted: false,
+      status: "pending",
+    };
+    if (reqBody.userId) {
+      matchStage.userId = mongoose.Types.ObjectId(userId);
+    }
+    const pipeline = [
+      {
+        $match: matchStage,
+      },
+      {
+        $group: {
+          _id: null,
+          totalCount: { $sum: 1 },
+          totalAmount: { $sum: "$grandTotal" },
+          orders: { $push: "$$ROOT" },
+        },
+      },
+      {
+        $unwind: "$orders",
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "orders.userId",
+          foreignField: "_id",
+          as: "orders.user",
+        },
+      },
+      {
+        $unwind: "$orders.user",
+      },
+      {
+        $lookup: {
+          from: "products",
+          localField: "orders.items.productId",
+          foreignField: "_id",
+          as: "orders.items.productDetails",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalCount: { $first: "$totalCount" },
+          totalAmount: { $first: "$totalAmount" },
+          orders: { $push: "$orders" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          totalCount: 1,
+          totalAmount: 1,
+          orders: 1,
+        },
+      },
+    ];
+    const result = await Order.aggregate(pipeline);
+    return result;
+  } catch (error) {
+    throw errorHandler(400, "could not list all pending orders");
+  }
+};
+
+export const listAllCancelledOrders = async (reqBody) => {
+  try {
+    let matchStage = {
+      isDeleted: false,
+      
+    };
+  } catch (error) {
+    throw errorHandler(400, "could not get cancelled orders", error.message);
   }
 };

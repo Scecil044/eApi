@@ -1,6 +1,8 @@
 import User from "../models/User.model.js";
 import moment from "moment";
 import { findRoleByName } from "./role.service.js";
+import { errorHandler } from "../utils/error.js";
+import bcrypt from "bcryptjs";
 
 export const findUserByEmail = async (email) => {
   try {
@@ -125,6 +127,46 @@ export const updateUserDetails = async (userId, reqBody) => {
   } catch (error) {
     console.log(error);
     throw new Error("Failed to update details! ", error);
+  }
+};
+// Adjust the path to your User model
+
+export const passwordReset = async (reqBody, reqUser) => {
+  try {
+    const { password, email } = reqBody;
+    if (!password || !email) {
+      throw errorHandler(400, "Please enter your email and a desired password");
+    }
+
+    const user = await findUserById(reqUser.id);
+    if (!user) {
+      throw errorHandler(400, "Could not find user");
+    }
+
+    if (user.email !== email) {
+      throw errorHandler(400, "Confirm your email and retry");
+    }
+
+    const isPasswordSame = await bcrypt.compare(password, user.password);
+    if (isPasswordSame) {
+      throw errorHandler(
+        400,
+        "Please enter a new password different from the previous one"
+      );
+    }
+
+    user.password = password;
+    await user.save();
+
+    const userObject = user.toObject();
+    delete userObject.password;
+    return userObject;
+  } catch (error) {
+    console.log(error);
+    throw new Error(
+      "Could not complete password reset. An error occurred with the following details: " +
+        error.message
+    );
   }
 };
 

@@ -112,12 +112,15 @@ export const loginUser = async (email, password) => {
     const user = await findUserByEmail(email);
     // console.log(user);
     const isMatch = await user.comparePasswords(password);
-    if (!isMatch) return next(errorHandler(400, "invalid credentials!!"));
+    if (!isMatch) throw errorHandler(400, "invalid credentials!!");
     user.password = undefined;
     return user;
   } catch (error) {
     console.log(error);
-    throw new Error("failed to authenticate!!");
+    throw new Error(
+      "failed to authenticate!. An error was expereinced with the followind details: " +
+        error.message
+    );
   }
 };
 
