@@ -3,6 +3,7 @@ import {
   genericBusinessFilter,
   getAllBusinessesCount,
   listAllBusinesses,
+  registerNewBusiness,
 } from "../services/business.service.js";
 import { createLog } from "../services/log.service.js";
 import { findUserById } from "../services/user.service.js";
@@ -59,5 +60,15 @@ export const filterBusinesses = async (req, res, next) => {
     res.status(200).json(result);
   } catch (error) {
     next(error);
+  }
+};
+
+export const createNewBusiness = async (req, res, next) => {
+  try {
+    const data = await registerNewBusiness(req.params.userId, req.body);
+
+    res.status(200).json(data);
+  } catch (error) {
+    throw new Error("could not create new business" + error.message);
   }
 };

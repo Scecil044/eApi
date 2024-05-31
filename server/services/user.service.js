@@ -428,3 +428,58 @@ export const filterUsers = async (reqQuery) => {
     throw new Error("could not filter users");
   }
 };
+
+export const getDeletedUsers = async () => {
+  try {
+    const pipeline = [
+      {
+        $match: {
+          isDeleted: true,
+        },
+      },
+      {
+        $unwind: {
+          path: "$businessId",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "businesses",
+          localField: "businessId",
+          foreignField: "_id",
+          as: "businessDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$businessDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          firstName: { $first: "$firstName" },
+          lastName: { $first: "$lastName" },
+          email: { $first: "$email" },
+          phoneNumber: { $first: "$phoneNumber" },
+          profilePicture: { $first: "$profilePicture" },
+          gender: { $first: "$gender" },
+          role: { $first: "$role" },
+          isActive: { $first: "$isActive" },
+          isDeleted: { $first: "$isDeleted" },
+          isBlackListed: { $first: "$isBlackListed" },
+          metaData: { $first: "$metaData" },
+          createdAt: { $first: "$createdAt" },
+          updatedAt: { $first: "$updatedAt" },
+          businessId: { $addToSet: "$businessId" },
+          businesses: { $addToSet: "$businessDetails" },
+        },
+      },
+    ];
+    const result = await User.aggregate(pipeline);
+  } catch (error) {
+    throw new Error("could not get deleted users:" + error.message);
+  }
+};

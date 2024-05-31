@@ -124,7 +124,6 @@ export const filterSystemLogs = async (reqQuery) => {
         },
       },
     ];
-
     const result = await Logger.aggregate(pipeline);
     return result;
   } catch (error) {

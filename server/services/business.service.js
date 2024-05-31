@@ -30,7 +30,10 @@ export const createNewBusiness = async (reqBody) => {
     return business;
   } catch (error) {
     console.log(error);
-    throw new Error("could not save new business!");
+    throw new Error(
+      "could not save new business! An error was encounterd with the following details:" +
+        error.message
+    );
   }
 };
 
@@ -225,5 +228,22 @@ export const genericBusinessFilter = async (reqQuery) => {
   } catch (error) {
     console.log(error);
     throw new Error("Unable to filter businesses");
+  }
+};
+
+export const registerNewBusiness = async (userId, reqBody) => {
+  try {
+    const newBusiness = await createNewBusiness(reqBody);
+    const user = await findUserById(userId);
+    if (!user) return next(errorHandler(400, "could not find user"));
+    user.businessId.unshift(newBusiness._id);
+    const userObject = user.toObject();
+    delete userObject.password;
+    return userObject;
+  } catch (error) {
+    throw new Error(
+      "could not complete action. An error was encountered with the following details:" +
+        error.message
+    );
   }
 };
