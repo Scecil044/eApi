@@ -1,4 +1,5 @@
 import Logger from "../models/Logger.model.js";
+import { errorHandler } from "../utils/error.js";
 import { findUserById } from "./user.service.js";
 
 export const createLog = async (userId, message) => {
@@ -129,5 +130,20 @@ export const filterSystemLogs = async (reqQuery) => {
   } catch (error) {
     console.log(error);
     throw new Error("could not filter system logs");
+  }
+};
+
+export const discardLog = async (logId) => {
+  try {
+    const isLog = await Logger.findOne({ _id: logId });
+    if (!isLog) throw errorHandler(400, "log not found in databse");
+    isLog.isDeleted = true;
+    await isLog.save();
+    return isLog;
+  } catch (error) {
+    throw new Error(
+      "could not delete system log. An error was encountered with the following details:" +
+        error.message
+    );
   }
 };

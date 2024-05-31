@@ -1,5 +1,6 @@
 import {
   createLog,
+  discardLog,
   filterSystemLogs,
   getSystemLogs,
   getSystemLogsByUserId,
@@ -40,6 +41,16 @@ export const searchForLog = async (req, res, next) => {
       `${req.user.userName} unable to access system logs`
     ).transports[0].logString;
     await createLog(req.user.id, logString);
+    next(error);
+  }
+};
+
+export const deleteSystemLog = async (req, res, next) => {
+  try {
+    const response = await discardLog(req.params.logId);
+    if (!response) return next(errorHandler(400, "could not complete action"));
+    res.status(200).json("log deleted successfully");
+  } catch (error) {
     next(error);
   }
 };
