@@ -185,11 +185,9 @@ function checkOverFlow(newStr) {
       uniqueChars.push(arr[i]);
     }
   }
-
   return { uniqueChars, overflowChars };
 }
-
 let newStr = "abbccddeeffgg";
 let result = checkOverFlow(newStr);
-console.log("Unique Characters:", result.uniqueChars.join("")); // Output: "abcdefg"
-console.log("Overflow Characters:", result.overflowChars.join("")); // Output: "bcdeffgg"
+console.log("Unique Characters:", result.uniqueChars.join(""));
+console.log("Overflow Characters:", result.overflowChars.join(""));
