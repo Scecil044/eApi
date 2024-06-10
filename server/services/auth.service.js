@@ -114,6 +114,21 @@ export const loginUser = async (email, password) => {
     const isMatch = await user.comparePasswords(password);
     if (!isMatch) throw errorHandler(400, "invalid credentials!!");
     user.password = undefined;
+
+    // user = await User.checkRole();
+    // const admin = user.admin;
+    // const superAdmin = user.superAdmin;
+    // const trader = user.trader;
+    // const systemUser = user.systemUser;
+    // const response = {
+    //   admin,
+    //   systemUser,
+    //   trader,
+    //   superAdmin,
+    //   user,
+    // };
+    // return response;
+
     return user;
   } catch (error) {
     console.log(error);

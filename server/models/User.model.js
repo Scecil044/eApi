@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import mongoosePaginate from "mongoose-paginate-v2";
+import { findRoleByRoleId } from "../services/role.service";
+import Role from "./Role.model.js";
 
 const MetaDataSchema = new mongoose.Schema({
   gender: { type: String },
@@ -43,6 +45,30 @@ UserSchema.methods.comparePasswords = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
   } catch (error) {
     throw new Error(error, "could not compare passwords");
+  }
+};
+
+UserSchema.methods.checkRole = async function () {
+  try {
+    this.admin = false;
+    this.superAdmin = false;
+    this.trader = false;
+    this.systemUser = false;
+    // const role = await findRoleByRoleId(this.role);
+    const role = await Role.find({ _id: this.role });
+    const roleName = role[0].roleName;
+    if (toLower(roleName) === "admin") {
+      this.admin = true;
+    } else if (toLower(roleName) === "superAdmin") {
+      this.superAdmin = true;
+    } else if (toLower(roleName) === "trader") {
+      this.trader = true;
+    } else if (tolower(roleName) === "user") {
+      this.systemUser = true;
+    }
+    return this;
+  } catch (error) {
+    throw new Error(error);
   }
 };
 
